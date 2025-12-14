@@ -1246,173 +1246,269 @@ class EventManager {
         alert('تنظیمات با موفقیت ذخیره شدند.');
     }
 }
-
 // ==================== Initialize Application ====================
 class App {
     static async init() {
-        console.log('🎯 App.init() شروع شد');
+        console.log('🎯 App.init شروع شد');
         
         try {
-            // 🔴 مشکل اینجاست! این خط رو کامنت کنید یا حذف کنید:
-            // document.querySelector('.loading-spinner')?.remove();
-            
-            // 🟢 اول بدون await چک کنیم
-            console.log('1. شروع ThemeManager.init()');
-            ThemeManager.init().then(() => {
-                console.log('✅ ThemeManager.init() کامل شد');
-            }).catch(e => {
-                console.error('❌ ThemeManager.init() خطا:', e);
-            });
-            
-            console.log('2. شروع BackgroundManager.applySavedBackground()');
-            BackgroundManager.applySavedBackground().then(() => {
-                console.log('✅ BackgroundManager.applySavedBackground() کامل شد');
-            }).catch(e => {
-                console.error('❌ BackgroundManager.applySavedBackground() خطا:', e);
-            });
-            
-            // بارگذاری layout بدون await
-            console.log('3. شروع StorageManager.get() برای layout');
-            StorageManager.get(CONFIG.STORAGE_KEYS.LAYOUT).then(layout => {
-                console.log('✅ Layout لود شد:', layout);
-                state.layoutMap = layout || {};
-            }).catch(e => {
-                console.error('❌ Layout خطا:', e);
-                state.layoutMap = {};
-            });
-            
-            // بارگذاری بوکمارک‌ها
-            console.log('4. شروع BookmarkManager.loadBookmarks()');
-            BookmarkManager.loadBookmarks().then(bookmarks => {
-                console.log(`✅ ${bookmarks.length} بوکمارک لود شد`);
-            }).catch(e => {
-                console.error('❌ BookmarkManager.loadBookmarks() خطا:', e);
-                state.bookmarks = [];
-            });
-            
-            // بعد از 2 ثانیه، هرچه شده رندر کن
-            setTimeout(() => {
-                console.log('⏰ تایم‌اوت 2 ثانیه - شروع رندر');
-                this.finishInit();
-            }, 2000);
-            
-        } catch (error) {
-            console.error('🔥 خطای بحرانی در App.init():', error);
-            this.showError(error);
-        }
-    }
-    
-    static async finishInit() {
-        console.log('🔄 finishInit() شروع شد');
-        
-        try {
-            // تنظیم رویدادها
-            console.log('5. شروع EventManager.setup()');
-            EventManager.setup();
-            
-            // رندر اولیه
-            console.log('6. شروع Renderer.renderDashboard()');
-            await Renderer.renderDashboard();
-            
-            // حالا اسپینر رو حذف کن
+            // 1. ابتدا اسپینر رو حذف نکن! فقط مخفی کن
             const spinner = document.querySelector('.loading-spinner');
             if (spinner) {
-                spinner.style.opacity = '0';
-                setTimeout(() => spinner.remove(), 500);
-                console.log('✅ اسپینر حذف شد');
+                spinner.style.opacity = '0.5';
             }
             
-            console.log('🎉 برنامه با موفقیت راه‌اندازی شد!');
+            // 2. بارگذاری ساده‌شده
+            console.log('🔧 مرحله 1: بارگذاری تنظیمات');
+            
+            // تم
+            const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                state.isDarkMode = true;
+            }
+            
+            // Layout
+            const savedLayout = localStorage.getItem(CONFIG.STORAGE_KEYS.LAYOUT);
+            if (savedLayout) {
+                state.layoutMap = JSON.parse(savedLayout);
+            }
+            
+            // پس‌زمینه
+            const bg = localStorage.getItem(CONFIG.STORAGE_KEYS.BACKGROUND);
+            if (bg) {
+                document.body.style.backgroundImage = `url(${bg})`;
+            } else {
+                document.body.style.backgroundImage = `url(${CONFIG.DEFAULT_BG_IMAGE_PATH})`;
+            }
+            document.body.style.backgroundSize = 'cover';
+            
+            // 3. بارگذاری بوکمارک‌ها
+            console.log('🔧 مرحله 2: بارگذاری بوکمارک‌ها');
+            await this.loadBookmarksSimple();
+            
+            // 4. رندر
+            console.log('🔧 مرحله 3: رندر کردن');
+            await this.renderSimple();
+            
+            // 5. رویدادها
+            console.log('🔧 مرحله 4: تنظیم رویدادها');
+            this.setupEventsSimple();
+            
+            // 6. حذف اسپینر
+            if (spinner) {
+                spinner.style.transition = 'opacity 0.5s';
+                spinner.style.opacity = '0';
+                setTimeout(() => {
+                    if (spinner.parentNode) {
+                        spinner.parentNode.removeChild(spinner);
+                    }
+                }, 500);
+            }
+            
+            console.log('✅ App.init با موفقیت پایان یافت');
             
         } catch (error) {
-            console.error('❌ خطا در finishInit():', error);
-            this.showError(error);
+            console.error('❌ خطا در App.init:', error);
+            this.showError(error.message);
         }
     }
     
-    static showError(error) {
-        const spinner = document.querySelector('.loading-spinner');
-        if (spinner) {
-            spinner.innerHTML = `
-                <h3 style="color: red;">❌ خطا در راه‌اندازی</h3>
-                <p>${error.message}</p>
-                <button onclick="location.reload()" style="padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px;">
-                    تلاش مجدد
-                </button>
+    static async loadBookmarksSimple() {
+        try {
+            console.log('📖 در حال دریافت بوکمارک‌ها از:', CONFIG.BOOKMARKS_JSON_URL);
+            
+            const response = await fetch(CONFIG.BOOKMARKS_JSON_URL);
+            
+            if (!response.ok) {
+                throw new Error(`خطای HTTP: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            state.bookmarks = data.bookmarks || data || [];
+            
+            console.log(`📚 ${state.bookmarks.length} بوکمارک لود شد`);
+            
+        } catch (error) {
+            console.warn('⚠️ استفاده از بوکمارک‌های پیش‌فرض:', error.message);
+            
+            // بوکمارک‌های پیش‌فرض
+            state.bookmarks = [
+                {
+                    id: '1',
+                    title: 'گوگل',
+                    url: 'https://google.com',
+                    category: 'موتور جستجو',
+                    description: 'موتور جستجوی گوگل'
+                },
+                {
+                    id: '2',
+                    title: 'GitHub',
+                    url: 'https://github.com',
+                    category: 'توسعه',
+                    description: 'پلتفرم توسعه نرم‌افزار'
+                },
+                {
+                    id: '3',
+                    title: 'یوتیوب',
+                    url: 'https://youtube.com',
+                    category: 'رسانه',
+                    description: 'پلتفرم ویدیو'
+                }
+            ];
+        }
+    }
+    
+    static async renderSimple() {
+        const container = document.getElementById('grid-container');
+        if (!container) {
+            console.error('❌ grid-container پیدا نشد!');
+            return;
+        }
+        
+        // پاک کردن
+        container.innerHTML = '';
+        
+        // اگر بوکمارک نداریم
+        if (state.bookmarks.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 50px; grid-column: 1 / -1;">
+                    <h3>📚 بوکمارکی یافت نشد</h3>
+                    <p>برای شروع، دکمه ✏️ را فشار داده و بوکمارک جدید اضافه کنید.</p>
+                </div>
             `;
+            return;
         }
+        
+        // گروه‌بندی بر اساس دسته
+        const categories = {};
+        state.bookmarks.forEach(item => {
+            const cat = item.category || 'سایر';
+            if (!categories[cat]) categories[cat] = [];
+            categories[cat].push(item);
+        });
+        
+        // ایجاد کارت‌ها
+        Object.entries(categories).forEach(([category, items], index) => {
+            const card = document.createElement('div');
+            card.className = 'bookmark-card';
+            
+            // موقعیت در گرید
+            const colStart = (index % 3) * 8 + 1;
+            const rowStart = Math.floor(index / 3) * 6 + 1;
+            
+            card.style.gridColumnStart = colStart;
+            card.style.gridRowStart = rowStart;
+            card.style.gridColumnEnd = `span 8`;
+            card.style.gridRowEnd = `span 6`;
+            card.style.width = `${8 * CONFIG.GRID_CELL_SIZE + 7 * CONFIG.GRID_GAP}px`;
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">${category} (${items.length})</div>
+                    <button class="card-btn btn-drag">::</button>
+                </div>
+                <div class="card-content">
+                    <div class="bookmark-tiles">
+                        ${items.map(item => `
+                            <a href="${item.url || '#'}" class="tile" target="_blank" title="${item.description || ''}">
+                                <img src="${CONFIG.FALLBACK_ICON_PATH}" class="tile-icon">
+                                <div class="tile-name">${item.title}</div>
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(card);
+        });
+        
+        console.log(`🎨 ${Object.keys(categories).length} کارت رندر شد`);
     }
-}
-
-// ==================== راه‌اندازی برنامه ====================
-console.log('📌 وضعیت DOM:', document.readyState);
-
-// روش ۱: منتظر بمان تا همه چیز لود شود
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('✅ DOMContentLoaded event fired');
-        App.init();
-    });
-} else {
-    // DOM از قبل لود شده
-    console.log('✅ DOM از قبل لود شده');
-    setTimeout(() => {
-        App.init();
-    }, 100);
-}
-
-// روش ۲: fallback با timeout
-setTimeout(() => {
-    if (!window.appInitialized) {
-        console.log('⚠️ Fallback: اجرای دستی بعد از 3 ثانیه');
-        window.appInitialized = true;
-        App.init();
-    }
-}, 3000);
-
-
-
-// راه حل اضطراری - اجرای مستقیم
-console.log('🚨 اجرای مستقیم شروع شد');
-
-// بررسی کن که آیا App.init اجرا شده یا نه
-if (!window.appStarted) {
-    window.appStarted = true;
     
-    // بعد از 1 ثانیه اجرا کن
-    setTimeout(async () => {
-        console.log('🕒 شروع اجرای مستقیم...');
+    static setupEventsSimple() {
+        console.log('🎮 تنظیم رویدادها');
         
-        // حتماً اسپینر رو پاک کن
-        const spinner = document.querySelector('.loading-spinner');
-        if (spinner) {
-            spinner.remove();
-            console.log('🗑️ اسپینر حذف شد');
+        // دکمه ویرایش
+        const editBtn = document.getElementById('edit-mode-btn');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                state.isEditMode = !state.isEditMode;
+                editBtn.textContent = state.isEditMode ? '✅' : '✏️';
+                editBtn.title = state.isEditMode ? 'خروج از حالت ویرایش' : 'حالت ویرایش';
+                
+                // نمایش/مخفی کردن منوی فرعی
+                const subControls = document.getElementById('sub-controls');
+                if (subControls) {
+                    if (state.isEditMode) {
+                        subControls.classList.remove('hidden-controls');
+                        subControls.classList.add('visible-controls');
+                    } else {
+                        subControls.classList.remove('visible-controls');
+                        subControls.classList.add('hidden-controls');
+                    }
+                }
+                
+                // نمایش دکمه‌های ویرایش در کارت‌ها
+                document.body.classList.toggle('editing-mode', state.isEditMode);
+            });
         }
         
-        // یک رندر ساده انجام بده
+        // سایر دکمه‌های ساده
+        const buttons = {
+            'add-card-btn': () => alert('افزودن کارت - در حال توسعه'),
+            'refresh-bookmarks-btn': () => location.reload(),
+            'toggle-theme-btn': () => {
+                state.isDarkMode = !state.isDarkMode;
+                document.documentElement.setAttribute('data-theme', state.isDarkMode ? 'dark' : 'light');
+                localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, state.isDarkMode ? 'dark' : 'light');
+            }
+        };
+        
+        Object.entries(buttons).forEach(([id, handler]) => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.addEventListener('click', handler);
+            }
+        });
+        
+        console.log('✅ رویدادها تنظیم شدند');
+    }
+    
+    static showError(message) {
         const container = document.getElementById('grid-container');
         if (container) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 50px;">
-                    <h2>🎯 همیار کافینت</h2>
-                    <p>برنامه با موفقیت لود شد!</p>
-                    <button onclick="location.reload()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; margin: 10px;">
-                        بارگذاری مجدد
+                <div style="text-align: center; padding: 50px; grid-column: 1 / -1;">
+                    <h3 style="color: #dc3545;">⚠️ خطا</h3>
+                    <p>${message}</p>
+                    <button onclick="location.reload()" style="
+                        padding: 10px 20px;
+                        background: #007bff;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        margin: 10px;
+                        cursor: pointer;
+                    ">
+                        تلاش مجدد
                     </button>
                 </div>
             `;
-            console.log('✅ رندر ساده انجام شد');
         }
-        
-        // سعی کن App.init رو اجرا کنی
-        if (window.App && typeof window.App.init === 'function') {
-            try {
-                await window.App.init();
-                console.log('✅ App.init() با موفقیت اجرا شد');
-            } catch (e) {
-                console.error('❌ App.init() خطا داد:', e);
-            }
-        }
-    }, 1000);
+    }
+}
+
+// 🚀 شروع برنامه
+console.log('🌟 همیار کافینت در حال راه‌اندازی...');
+
+// صبر کن تا DOM کامل لود بشه
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('✅ DOM آماده است');
+        setTimeout(() => App.init(), 100);
+    });
+} else {
+    console.log('✅ DOM از قبل آماده است');
+    setTimeout(() => App.init(), 100);
 }
