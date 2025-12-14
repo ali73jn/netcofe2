@@ -1362,3 +1362,50 @@ setTimeout(() => {
         App.init();
     }
 }, 3000);
+
+
+
+// راه حل اضطراری - اجرای مستقیم
+console.log('🚨 اجرای مستقیم شروع شد');
+
+// بررسی کن که آیا App.init اجرا شده یا نه
+if (!window.appStarted) {
+    window.appStarted = true;
+    
+    // بعد از 1 ثانیه اجرا کن
+    setTimeout(async () => {
+        console.log('🕒 شروع اجرای مستقیم...');
+        
+        // حتماً اسپینر رو پاک کن
+        const spinner = document.querySelector('.loading-spinner');
+        if (spinner) {
+            spinner.remove();
+            console.log('🗑️ اسپینر حذف شد');
+        }
+        
+        // یک رندر ساده انجام بده
+        const container = document.getElementById('grid-container');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 50px;">
+                    <h2>🎯 همیار کافینت</h2>
+                    <p>برنامه با موفقیت لود شد!</p>
+                    <button onclick="location.reload()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; margin: 10px;">
+                        بارگذاری مجدد
+                    </button>
+                </div>
+            `;
+            console.log('✅ رندر ساده انجام شد');
+        }
+        
+        // سعی کن App.init رو اجرا کنی
+        if (window.App && typeof window.App.init === 'function') {
+            try {
+                await window.App.init();
+                console.log('✅ App.init() با موفقیت اجرا شد');
+            } catch (e) {
+                console.error('❌ App.init() خطا داد:', e);
+            }
+        }
+    }, 1000);
+}
