@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="همیار کافینت - مدیریت پیشرفته بوکمارک‌ها">
     <title>همیار کافینت - NetCofe Dashboard</title>
     
     <!-- PWA Meta Tags -->
@@ -33,40 +32,28 @@
         🔌 حالت آفلاین
     </div>
     
-    <!-- نوار جستجو -->
-    <div id="search-container" class="search-container hidden">
-        <input type="search" id="bookmark-search" placeholder="جستجو در بوکمارک‌ها..." autocomplete="off">
-        <button id="close-search" class="close-search">✕</button>
-    </div>
-    
     <!-- کانتینر اصلی -->
     <main id="grid-container">
         <div class="loading-spinner">
             <div class="spinner"></div>
-            <p>در حال بارگذاری...</p>
+            <p>در حال راه‌اندازی همیار کافینت...</p>
         </div>
     </main>
 
     <!-- منوی کنترل -->
     <div id="control-menu">
         <div id="sub-controls" class="hidden-controls">
-            
             <button id="add-card-btn" class="sub-btn" title="افزودن کارت جدید">➕</button>
             <button id="refresh-bookmarks-btn" class="sub-btn" title="به‌روزرسانی بوکمارک‌ها">🔄</button>
-            
             <button id="set-background-btn" class="sub-btn" title="انتخاب پس زمینه">🖼️</button>
             <button id="toggle-theme-btn" class="sub-btn" title="تغییر حالت تاریک/روشن">🌓</button>
-            
             <button id="export-bookmarks-btn" class="sub-btn" title="خروجی بوکمارک‌ها">🔖📤</button>
             <button id="import-bookmarks-btn" class="sub-btn" title="ورود بوکمارک‌ها">🔖📥</button>
-            
             <button id="export-settings-btn" class="sub-btn" title="خروجی تنظیمات">⚙️📤</button>
             <button id="import-settings-btn" class="sub-btn" title="ورود تنظیمات">⚙️📥</button>
-            
             <button id="search-btn" class="sub-btn" title="جستجو">🔍</button>
         </div>
         
-        <button id="goto-bookmarks-btn" class="main-btn" title="مدیریت بوکمارک‌ها">🔖</button>
         <button id="edit-mode-btn" class="main-btn" title="حالت ویرایش">✏️</button>
     </div>
     
@@ -77,107 +64,93 @@
 
     <!-- Modal مدیریت بوکمارک -->
     <div id="bookmark-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>مدیریت محتوا</h3>
-            <input type="hidden" id="current-card-id">
-            <input type="hidden" id="editing-item-id">
-
-            <form id="bookmark-form">
-                <label for="bookmark-type">نوع:</label>
-                <select id="bookmark-type">
-                    <option value="bookmark">بوکمارک</option>
-                    <option value="folder">پوشه</option>
-                </select>
-                
-                <label for="bookmark-name">نام:</label>
-                <input type="text" id="bookmark-name" required>
-
-                <div id="url-field-group">
-                    <label for="bookmark-url">آدرس (URL):</label>
-                    <input type="url" id="bookmark-url">
-                </div>
-                
-                <label for="bookmark-category">دسته‌بندی (اختیاری):</label>
-                <input type="text" id="bookmark-category" placeholder="مثال: شبکه‌های اجتماعی">
-                
-                <label for="bookmark-tags">برچسب‌ها (با کاما جدا شود):</label>
-                <input type="text" id="bookmark-tags" placeholder="مثال: شبکه اجتماعی, ایرانی">
-                
-                <label for="bookmark-description">توضیحات (اختیاری):</label>
-                <textarea id="bookmark-description" rows="3"></textarea>
-                
-                <div class="modal-buttons">
-                    <button type="button" id="delete-btn" class="btn-danger hidden">حذف</button>
-                    <button type="button" id="cancel-btn" class="btn-secondary">لغو</button>
-                    <button type="submit" id="save-btn" class="btn-success">ذخیره</button>
-                </div>
-            </form>
-        </div>
+        <!-- محتوای مدال... -->
     </div>
     
-    <!-- Modal تنظیمات -->
-    <div id="settings-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>تنظیمات پیشرفته</h3>
-            <div class="settings-section">
-                <h4>ظاهر</h4>
-                <label>
-                    <input type="checkbox" id="auto-dark-mode">
-                    حالت تاریک خودکار
-                </label>
-                <label>
-                    <input type="checkbox" id="compact-view">
-                    نمایش فشرده
-                </label>
-            </div>
-            
-            <div class="settings-section">
-                <h4>همگام‌سازی</h4>
-                <label>
-                    آدرس JSON بوکمارک‌ها:
-                    <input type="url" id="bookmarks-json-url" placeholder="https://raw.githubusercontent.com/...">
-                </label>
-                <button id="reset-bookmarks-url" class="btn-secondary">بازنشانی به پیش‌فرض</button>
-            </div>
-            
-            <div class="settings-section">
-                <h4>داده‌ها</h4>
-                <button id="clear-cache-btn" class="btn-danger">پاک کردن کش</button>
-                <button id="reset-all-btn" class="btn-danger">بازنشانی همه تنظیمات</button>
-            </div>
-            
-            <div class="modal-buttons">
-                <button type="button" id="close-settings-btn" class="btn-secondary">بستن</button>
-                <button type="button" id="save-settings-btn" class="btn-success">ذخیره تنظیمات</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- اسکریپت‌ها -->
-    <script src="assets/js/dashboard.js"></script>
-    
-    <!-- ثبت Service Worker -->
+    <!-- اسکریپت اصلی -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('Service Worker ثبت شد:', registration);
-                    })
-                    .catch(error => {
-                        console.log('خطا در ثبت Service Worker:', error);
-                    });
-            });
+        // اول یک تست ساده انجام می‌دیم
+        console.log('🚀 اسکریپت شروع شد');
+        
+        // نمایش پیام لودینگ
+        function showLoading(msg) {
+            const container = document.getElementById('grid-container');
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 20px;">${msg}</p>
+                    </div>
+                `;
+            }
         }
         
-        // تشخیص حالت آفلاین
-        window.addEventListener('online', () => {
-            document.getElementById('offline-indicator').classList.add('hidden');
+        // تست آدرس فایل‌ها
+        async function testFiles() {
+            const tests = [
+                { name: 'CSS', url: 'assets/css/dashboard.css' },
+                { name: 'JS', url: 'assets/js/dashboard.js' },
+                { name: 'Manifest', url: 'manifest.webmanifest' },
+                { name: 'Bookmarks', url: 'assets/data/bookmarks.json' }
+            ];
+            
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url);
+                    console.log(`${test.name}: ${response.ok ? '✅' : '❌'} (${response.status})`);
+                } catch (error) {
+                    console.log(`${test.name}: ❌ ${error.message}`);
+                }
+            }
+        }
+        
+        // لود کردن اپلیکیشن اصلی
+        function loadApp() {
+            showLoading('در حال بارگذاری اپلیکیشن...');
+            
+            const script = document.createElement('script');
+            script.src = 'assets/js/dashboard.js';
+            script.onload = function() {
+                console.log('✅ dashboard.js لود شد');
+                
+                // 2 ثانیه صبر کن سپس اپلیکیشن رو شروع کن
+                setTimeout(() => {
+                    if (window.App && typeof window.App.init === 'function') {
+                        window.App.init().catch(e => {
+                            console.error('❌ خطا در init:', e);
+                            showLoading(`خطا: ${e.message}<br><button onclick="location.reload()">تلاش مجدد</button>`);
+                        });
+                    } else {
+                        showLoading('App.init پیدا نشد. لطفا صفحه را رفرش کنید.');
+                    }
+                }, 2000);
+            };
+            
+            script.onerror = function() {
+                console.error('❌ خطا در لود کردن dashboard.js');
+                showLoading('خطا در بارگذاری فایل اصلی.<br>لطفا بررسی کنید که فایل‌ها آپلود شده باشند.');
+            };
+            
+            document.body.appendChild(script);
+        }
+        
+        // شروع برنامه
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM آماده است');
+            showLoading('بررسی فایل‌ها...');
+            
+            // اول تست کن
+            testFiles().then(() => {
+                // سپس اپلیکیشن رو لود کن
+                loadApp();
+            });
         });
         
-        window.addEventListener('offline', () => {
-            document.getElementById('offline-indicator').classList.remove('hidden');
-        });
+        // اگر DOM از قبل لود شده
+        if (document.readyState !== 'loading') {
+            showLoading('شروع برنامه...');
+            testFiles().then(loadApp);
+        }
     </script>
 </body>
 </html>
