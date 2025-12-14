@@ -1,3 +1,10 @@
+console.log('🚀 dashboard.js لود شد');
+console.log('DOM loaded:', document.readyState);
+
+// بررسی وجود المنت‌های ضروری
+console.log('grid-container:', document.getElementById('grid-container'));
+console.log('loading-spinner:', document.querySelector('.loading-spinner'));
+
 // ==================== تنظیمات اصلی ====================
 const CONFIG = {
     // لینک‌های پیش‌فرض
