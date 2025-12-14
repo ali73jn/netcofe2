@@ -1237,8 +1237,8 @@ class EventManager {
 class App {
     static async init() {
         try {
-            // حذف اسپینر لودینگ
-            document.querySelector('.loading-spinner')?.remove();
+            // اسپینر رو نگه دار تا همه چیز لود بشه
+            // document.querySelector('.loading-spinner')?.remove(); // این خط رو کامنت کن
             
             // بارگذاری اولیه
             await ThemeManager.init();
@@ -1247,8 +1247,11 @@ class App {
             // بارگذاری layout
             state.layoutMap = await StorageManager.get(CONFIG.STORAGE_KEYS.LAYOUT) || {};
             
-            // بارگذاری بوکمارک‌ها
-            await BookmarkManager.loadBookmarks();
+            // بارگذاری بوکمارک‌ها - با تایم‌اوت
+            await Promise.race([
+                BookmarkManager.loadBookmarks(),
+                new Promise(resolve => setTimeout(resolve, 5000)) // 5 ثانیه تایم‌اوت
+            ]);
             
             // تنظیم رویدادها
             EventManager.setup();
@@ -1256,17 +1259,14 @@ class App {
             // رندر اولیه
             await Renderer.renderDashboard();
             
-            // نمایش پیام خوش‌آمدگویی در اولین اجرا
-            const firstRun = !await StorageManager.get('netcofe_first_run');
-            if (firstRun) {
-                await StorageManager.set('netcofe_first_run', true);
-                setTimeout(() => {
-                    alert('🎉 به همیار کافینت خوش آمدید!\n\nبرای ویرایش دکمه ✏️ را فشار دهید.\nبوکمارک‌ها از منبع مرکزی بارگیری شده‌اند و می‌توانید آنها را شخصی‌سازی کنید.');
-                }, 1000);
-            }
+            // حالا اسپینر رو حذف کن
+            document.querySelector('.loading-spinner')?.remove();
             
         } catch (error) {
             console.error('خطا در راه‌اندازی برنامه:', error);
+            // حتماً اسپینر رو حذف کن حتی در صورت خطا
+            document.querySelector('.loading-spinner')?.remove();
+            
             document.getElementById('grid-container').innerHTML = `
                 <div class="error-state">
                     <h3>❌ خطا در راه‌اندازی</h3>
