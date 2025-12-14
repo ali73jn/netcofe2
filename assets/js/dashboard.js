@@ -1243,61 +1243,122 @@ class EventManager {
 // ==================== Initialize Application ====================
 class App {
     static async init() {
+        console.log('🎯 App.init() شروع شد');
+        
         try {
-            // اسپینر رو نگه دار تا همه چیز لود بشه
-            // document.querySelector('.loading-spinner')?.remove(); // این خط رو کامنت کن
+            // 🔴 مشکل اینجاست! این خط رو کامنت کنید یا حذف کنید:
+            // document.querySelector('.loading-spinner')?.remove();
             
-            // بارگذاری اولیه
-            await ThemeManager.init();
-            await BackgroundManager.applySavedBackground();
+            // 🟢 اول بدون await چک کنیم
+            console.log('1. شروع ThemeManager.init()');
+            ThemeManager.init().then(() => {
+                console.log('✅ ThemeManager.init() کامل شد');
+            }).catch(e => {
+                console.error('❌ ThemeManager.init() خطا:', e);
+            });
             
-            // بارگذاری layout
-            state.layoutMap = await StorageManager.get(CONFIG.STORAGE_KEYS.LAYOUT) || {};
+            console.log('2. شروع BackgroundManager.applySavedBackground()');
+            BackgroundManager.applySavedBackground().then(() => {
+                console.log('✅ BackgroundManager.applySavedBackground() کامل شد');
+            }).catch(e => {
+                console.error('❌ BackgroundManager.applySavedBackground() خطا:', e);
+            });
             
-            // بارگذاری بوکمارک‌ها - با تایم‌اوت
-            await Promise.race([
-                BookmarkManager.loadBookmarks(),
-                new Promise(resolve => setTimeout(resolve, 5000)) // 5 ثانیه تایم‌اوت
-            ]);
+            // بارگذاری layout بدون await
+            console.log('3. شروع StorageManager.get() برای layout');
+            StorageManager.get(CONFIG.STORAGE_KEYS.LAYOUT).then(layout => {
+                console.log('✅ Layout لود شد:', layout);
+                state.layoutMap = layout || {};
+            }).catch(e => {
+                console.error('❌ Layout خطا:', e);
+                state.layoutMap = {};
+            });
             
+            // بارگذاری بوکمارک‌ها
+            console.log('4. شروع BookmarkManager.loadBookmarks()');
+            BookmarkManager.loadBookmarks().then(bookmarks => {
+                console.log(`✅ ${bookmarks.length} بوکمارک لود شد`);
+            }).catch(e => {
+                console.error('❌ BookmarkManager.loadBookmarks() خطا:', e);
+                state.bookmarks = [];
+            });
+            
+            // بعد از 2 ثانیه، هرچه شده رندر کن
+            setTimeout(() => {
+                console.log('⏰ تایم‌اوت 2 ثانیه - شروع رندر');
+                this.finishInit();
+            }, 2000);
+            
+        } catch (error) {
+            console.error('🔥 خطای بحرانی در App.init():', error);
+            this.showError(error);
+        }
+    }
+    
+    static async finishInit() {
+        console.log('🔄 finishInit() شروع شد');
+        
+        try {
             // تنظیم رویدادها
+            console.log('5. شروع EventManager.setup()');
             EventManager.setup();
             
             // رندر اولیه
+            console.log('6. شروع Renderer.renderDashboard()');
             await Renderer.renderDashboard();
             
             // حالا اسپینر رو حذف کن
-            document.querySelector('.loading-spinner')?.remove();
+            const spinner = document.querySelector('.loading-spinner');
+            if (spinner) {
+                spinner.style.opacity = '0';
+                setTimeout(() => spinner.remove(), 500);
+                console.log('✅ اسپینر حذف شد');
+            }
+            
+            console.log('🎉 برنامه با موفقیت راه‌اندازی شد!');
             
         } catch (error) {
-            console.error('خطا در راه‌اندازی برنامه:', error);
-            // حتماً اسپینر رو حذف کن حتی در صورت خطا
-            document.querySelector('.loading-spinner')?.remove();
-            
-            document.getElementById('grid-container').innerHTML = `
-                <div class="error-state">
-                    <h3>❌ خطا در راه‌اندازی</h3>
-                    <p>${error.message}</p>
-                    <button onclick="location.reload()" class="btn-success">تلاش مجدد</button>
-                </div>
+            console.error('❌ خطا در finishInit():', error);
+            this.showError(error);
+        }
+    }
+    
+    static showError(error) {
+        const spinner = document.querySelector('.loading-spinner');
+        if (spinner) {
+            spinner.innerHTML = `
+                <h3 style="color: red;">❌ خطا در راه‌اندازی</h3>
+                <p>${error.message}</p>
+                <button onclick="location.reload()" style="padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px;">
+                    تلاش مجدد
+                </button>
             `;
         }
     }
 }
 
 // ==================== راه‌اندازی برنامه ====================
-document.addEventListener('DOMContentLoaded', () => {
-    App.init();
-    
-    // نمایش وضعیت آنلاین/آفلاین
-    const updateOnlineStatus = () => {
-        const indicator = document.getElementById('offline-indicator');
-        if (indicator) {
-            indicator.classList.toggle('hidden', navigator.onLine);
-        }
-    };
-    
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
-});
+console.log('📌 وضعیت DOM:', document.readyState);
+
+// روش ۱: منتظر بمان تا همه چیز لود شود
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('✅ DOMContentLoaded event fired');
+        App.init();
+    });
+} else {
+    // DOM از قبل لود شده
+    console.log('✅ DOM از قبل لود شده');
+    setTimeout(() => {
+        App.init();
+    }, 100);
+}
+
+// روش ۲: fallback با timeout
+setTimeout(() => {
+    if (!window.appInitialized) {
+        console.log('⚠️ Fallback: اجرای دستی بعد از 3 ثانیه');
+        window.appInitialized = true;
+        App.init();
+    }
+}, 3000);
