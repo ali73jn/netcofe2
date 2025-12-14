@@ -7,21 +7,24 @@ console.log('loading-spinner:', document.querySelector('.loading-spinner'));
 
 // ==================== تنظیمات اصلی ====================
 const CONFIG = {
-    // لینک‌های پیش‌فرض
-    BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/assets/data/bookmarks.json",
-    DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/assets/data/bookmarks.json",
+    // 🚨 مهم: این آدرس رو درست کن
+    // اگر روی GitHub Pages هستی، باید آدرس کامل باشه
+    BOOKMARKS_JSON_URL: window.location.hostname.includes('github.io') 
+        ? window.location.pathname.replace(/\/$/, '') + '/assets/data/bookmarks.json'
+        : './assets/data/bookmarks.json',
     
-    // مسیرهای لوکال
-    FALLBACK_ICON_PATH: "assets/icons/default_icon.png",
-    FOLDER_ICON_PATH: "assets/icons/folder.png",
-    DEFAULT_BG_IMAGE_PATH: "assets/icons/default_bg.jpg",
+    DEFAULT_BOOKMARKS_URL: './assets/data/bookmarks.json',
     
-    // تنظیمات گرید
+    // 🚨 مسیر آیکون‌ها رو اصلاح کن
+    FALLBACK_ICON_PATH: './assets/icons/default_icon.png',
+    FOLDER_ICON_PATH: './assets/icons/folder.png',
+    DEFAULT_BG_IMAGE_PATH: './assets/icons/default_bg.jpg',
+    
+    // بقیه تنظیمات...
     GRID_CELL_SIZE: 20,
     GRID_GAP: 2,
     HORIZONTAL_PIXEL_OFFSET: 0,
     
-    // کلیدهای localStorage
     STORAGE_KEYS: {
         LAYOUT: 'netcofe_layout',
         BACKGROUND: 'netcofe_background',
@@ -32,6 +35,10 @@ const CONFIG = {
         FAVICON_CACHE: 'netcofe_favicon_cache_v3'
     }
 };
+
+console.log('📍 آدرس فعلی:', window.location.href);
+console.log('📍 مسیر JSON:', CONFIG.BOOKMARKS_JSON_URL);
+
 
 // ==================== وضعیت برنامه ====================
 let state = {
