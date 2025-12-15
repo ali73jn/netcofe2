@@ -856,6 +856,7 @@ static async renderCardContent(cardEl, items, viewMode) {
     }
 }
 
+
 static getCurrentLevelItems(category, items, currentPath) {
     console.log('دریافت آیتم‌های سطح:', category, currentPath);
     
