@@ -291,96 +291,172 @@ html, body {
 }
 
 /* -------------------- Breadcrumbs و دکمه‌های کنترل -------------------- */
+/* ==================== Breadcrumb و دکمه‌های کنترل ==================== */
 .card-breadcrumbs {
     font-size: 1em;
     color: var(--text-color);
     padding: 4px 15px 6px;
     margin: 0;
-    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     white-space: nowrap;
     background: rgba(0, 0, 0, 0.02);
     border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    overflow-y: visible;
+    min-height: 35px;
 }
 
 [data-theme="dark"] .card-breadcrumbs {
     background: rgba(255, 255, 255, 0.05);
 }
 
+/* Breadcrumb آیتم‌ها */
 .crumb {
     cursor: pointer;
     text-decoration: underline;
     color: var(--primary-color);
     flex-shrink: 0;
     margin: 0 2px;
-    padding: 2px 4px;
+    padding: 2px 6px;
     border-radius: 3px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
 }
 
 .crumb:hover {
     background: rgba(0, 123, 255, 0.1);
+    text-decoration: none;
 }
 
-/* دکمه‌های کنترل در Breadcrumbs */
-/* به فایل dashboard.css اضافه کن: */
+/* جداکننده Breadcrumb */
+.crumb-separator {
+    margin: 0 5px;
+    color: var(--secondary-color);
+    user-select: none;
+    flex-shrink: 0;
+}
 
-/* دکمه‌های کنترل Breadcrumb */
+/* ==================== دکمه‌های کنترل ==================== */
 .card-control-btn {
-    width: 24px;
-    height: 24px;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 6px;
-    font-size: 12px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    opacity: 0.8;
+    width: 28px !important;
+    height: 28px !important;
+    border: none !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 8px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    opacity: 0.9 !important;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
 }
 
 .card-control-btn:hover {
-    opacity: 1;
-    transform: scale(1.1);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    opacity: 1 !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3) !important;
 }
 
+/* رنگ‌های دکمه‌ها */
 .btn-del-crumb {
-    background: #dc3545;
-    color: white;
+    background: #dc3545 !important;
+    color: white !important;
 }
 
 .btn-add-crumb {
-    background: #28a745;
-    color: white;
+    background: #28a745 !important;
+    color: white !important;
 }
 
 .btn-view-crumb {
-    background: #007bff;
-    color: white;
+    background: #007bff !important;
+    color: white !important;
 }
 
 .btn-back-crumb {
-    background: #ffc107;
-    color: #333;
+    background: #ffc107 !important;
+    color: #333 !important;
 }
 
 /* نمایش دکمه‌ها در حالت ویرایش */
 .editing-mode .card-control-btn {
     display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 0.9 !important;
 }
 
-/* ریسپانسیو برای دکمه‌ها */
+/* مخفی کردن دکمه‌ها در حالت عادی */
+.card-control-btn {
+    display: none !important;
+}
+
+/* ==================== حالت ویرایش ==================== */
+.editing-mode .bookmark-card {
+    border: 2px dashed var(--primary-color);
+}
+
+.editing-mode .tile {
+    border: 1px dashed #666;
+}
+
+.editing-mode .btn-drag {
+    opacity: 0.6 !important;
+    pointer-events: auto !important;
+}
+
+.editing-mode .tile .tile-edit-btn {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.editing-mode .resize-handle {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* ==================== ریسپانسیو برای Breadcrumb ==================== */
 @media (max-width: 768px) {
+    .card-breadcrumbs {
+        padding: 4px 10px;
+        font-size: 0.9em;
+        flex-wrap: wrap;
+        min-height: 40px;
+    }
+    
+    .crumb {
+        padding: 2px 4px;
+        margin: 1px;
+    }
+    
+    .crumb-separator {
+        margin: 0 3px;
+    }
+    
     .card-control-btn {
-        width: 22px;
-        height: 22px;
-        margin-right: 4px;
-        font-size: 11px;
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 12px !important;
+        margin-right: 6px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .card-breadcrumbs {
+        font-size: 0.85em;
+    }
+    
+    .card-control-btn {
+        width: 22px !important;
+        height: 22px !important;
+        margin-right: 4px !important;
     }
 }
 

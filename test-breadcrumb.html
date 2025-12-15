@@ -4,72 +4,124 @@
     <meta charset="UTF-8">
     <title>تست دکمه‌های کنترل</title>
     <style>
-        body { font-family: Tahoma; padding: 20px; }
-        .test-area {
+        body {
+            font-family: Tahoma;
+            padding: 30px;
             background: #f5f5f5;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
         }
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            padding: 10px;
+        .test-container {
             background: white;
-            border-radius: 5px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
-        .crumb {
+        .breadcrumb-test {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .crumb-test {
             color: #007bff;
             cursor: pointer;
-            margin: 0 5px;
             padding: 5px 10px;
-            border-radius: 3px;
+            border-radius: 4px;
+            background: none;
+            border: none;
+            font-size: 16px;
         }
-        .crumb:hover { background: #f0f8ff; }
+        .crumb-test:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
         .control-btn {
             width: 30px;
             height: 30px;
             border-radius: 50%;
             border: none;
-            color: white;
-            margin-left: 10px;
             cursor: pointer;
-            font-size: 14px;
+            margin-right: 10px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
-        .delete { background: red; }
-        .add { background: green; }
-        .view { background: blue; }
-        .back { background: orange; color: #333; }
+        .control-btn:hover {
+            transform: scale(1.1);
+        }
+        .delete { background: #dc3545; color: white; }
+        .add { background: #28a745; color: white; }
+        .view { background: #007bff; color: white; }
+        .back { background: #ffc107; color: #333; }
+        .separator {
+            margin: 0 10px;
+            color: #6c757d;
+        }
         #log {
             background: #333;
             color: #0f0;
             padding: 15px;
             font-family: monospace;
+            border-radius: 8px;
             margin-top: 20px;
-            border-radius: 5px;
             min-height: 100px;
             overflow-y: auto;
+        }
+        .toggle-btn {
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .toggle-btn:hover {
+            background: #5a6268;
+        }
+        .edit-mode {
+            border: 2px solid #007bff;
         }
     </style>
 </head>
 <body>
-    <h2>تست دکمه‌های کنترل Breadcrumb</h2>
+    <h1>تست دکمه‌های کنترل Breadcrumb</h1>
     
-    <div class="test-area">
-        <h3>حالت ریشه:</h3>
-        <div class="breadcrumb">
-            <span class="crumb">خانه</span>
+    <button class="toggle-btn" onclick="toggleEditMode()">
+        حالت ویرایش: <span id="mode-status">خاموش</span>
+    </button>
+    
+    <div class="test-container">
+        <h3>حالت ریشه (خانه):</h3>
+        <div class="breadcrumb-test" id="breadcrumb-root">
+            <button class="crumb-test" onclick="log('خانه کلیک شد')">خانه</button>
             <button class="control-btn delete" onclick="log('حذف کلیک شد')">❌</button>
             <button class="control-btn add" onclick="log('افزودن کلیک شد')">➕</button>
             <button class="control-btn view" onclick="log('تغییر نمایش کلیک شد')">👁️</button>
         </div>
         
         <h3>حالت داخل پوشه:</h3>
-        <div class="breadcrumb">
-            <span class="crumb">خانه</span>
-            <span style="margin: 0 10px;">›</span>
-            <span class="crumb">پوشه ۱</span>
+        <div class="breadcrumb-test" id="breadcrumb-folder">
+            <button class="crumb-test" onclick="log('خانه کلیک شد')">خانه</button>
+            <span class="separator">›</span>
+            <button class="crumb-test" onclick="log('پوشه ۱ کلیک شد')">پوشه ۱</button>
+            <button class="control-btn add" onclick="log('افزودن کلیک شد')">➕</button>
+            <button class="control-btn view" onclick="log('تغییر نمایش کلیک شد')">👁️</button>
+            <button class="control-btn back" onclick="log('برگشت کلیک شد')">↩️</button>
+        </div>
+        
+        <h3>حالت چند سطحی:</h3>
+        <div class="breadcrumb-test" id="breadcrumb-deep">
+            <button class="crumb-test" onclick="log('خانه کلیک شد')">خانه</button>
+            <span class="separator">›</span>
+            <button class="crumb-test" onclick="log('پوشه ۱ کلیک شد')">خودرو</button>
+            <span class="separator">›</span>
+            <button class="crumb-test" onclick="log('پوشه ۲ کلیک شد')">پورشه</button>
+            <span class="separator">›</span>
+            <button class="crumb-test" onclick="log('پوشه ۳ کلیک شد')">مدل ۹۱۱</button>
             <button class="control-btn add" onclick="log('افزودن کلیک شد')">➕</button>
             <button class="control-btn view" onclick="log('تغییر نمایش کلیک شد')">👁️</button>
             <button class="control-btn back" onclick="log('برگشت کلیک شد')">↩️</button>
@@ -79,6 +131,8 @@
     <div id="log"></div>
     
     <script>
+        let isEditMode = false;
+        
         function log(message) {
             const logDiv = document.getElementById('log');
             const time = new Date().toLocaleTimeString();
@@ -86,13 +140,45 @@
             console.log(message);
         }
         
-        log('برنامه تست شروع شد');
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const status = document.getElementById('mode-status');
+            const containers = document.querySelectorAll('.breadcrumb-test');
+            
+            if (isEditMode) {
+                status.textContent = 'روشن';
+                containers.forEach(container => {
+                    container.classList.add('edit-mode');
+                    container.querySelectorAll('.control-btn').forEach(btn => {
+                        btn.style.display = 'flex';
+                    });
+                });
+                log('حالت ویرایش روشن شد');
+            } else {
+                status.textContent = 'خاموش';
+                containers.forEach(container => {
+                    container.classList.remove('edit-mode');
+                    container.querySelectorAll('.control-btn').forEach(btn => {
+                        btn.style.display = 'none';
+                    });
+                });
+                log('حالت ویرایش خاموش شد');
+            }
+        }
         
         // شبیه‌سازی کلیک روی Breadcrumb
-        document.querySelectorAll('.crumb').forEach(crumb => {
-            crumb.addEventListener('click', function() {
-                log(`کلیک روی Breadcrumb: ${this.textContent}`);
+        document.querySelectorAll('.crumb-test').forEach(crumb => {
+            crumb.addEventListener('click', function(e) {
+                e.preventDefault();
+                log(`کلیک روی Breadcrumb: "${this.textContent}"`);
             });
+        });
+        
+        log('برنامه تست شروع شد');
+        
+        // ابتدا دکمه‌ها رو مخفی کن
+        document.querySelectorAll('.control-btn').forEach(btn => {
+            btn.style.display = 'none';
         });
     </script>
 </body>

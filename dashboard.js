@@ -827,6 +827,7 @@ class Renderer {
         container.appendChild(card);
     }
 
+
 static async renderCardContent(cardEl, items, viewMode) {
     const tilesContainer = cardEl.querySelector('.bookmark-tiles');
     const breadcrumbs = cardEl.querySelector('.card-breadcrumbs');
@@ -834,20 +835,21 @@ static async renderCardContent(cardEl, items, viewMode) {
     if (!tilesContainer) return;
     
     tilesContainer.innerHTML = '';
+    tilesContainer.classList.toggle("view-grid", viewMode === "grid");
+    tilesContainer.classList.toggle("view-list", viewMode === "list");
     
-    // گرفتن آدرس فعلی
     const category = cardEl.dataset.category;
     const currentPath = state.currentPaths[category] || [];
-    
-    console.log('=== رندر کارت ===');
-    console.log('دسته‌بندی:', category);
-    console.log('مسیر فعلی:', currentPath);
-    console.log('تعداد آیتم‌ها:', items.length);
     
     // رندر Breadcrumb
     this.renderBreadcrumbs(breadcrumbs, category, currentPath, items);
     
-    // رندر آیتم‌های سطح فعلی
+    // همیشه دکمه‌های کنترل رو اضافه کن، اما با CSS کنترلشون کن
+    if (breadcrumbs) {
+        this.addControlButtons(breadcrumbs, category, currentPath);
+    }
+    
+    // رندر آیتم‌ها
     const currentLevelItems = this.getCurrentLevelItems(category, items, currentPath);
     
     for (const item of currentLevelItems) {
@@ -1099,14 +1101,13 @@ static navigateToPath(category, newPath) {
 static addControlButtons(breadcrumbs, category, currentPath) {
     if (!breadcrumbs) return;
     
-    console.log('اضافه کردن دکمه‌های کنترل برای:', category, 'مسیر:', currentPath);
-    // بعد از تابع addControlButtons:
-	console.log('دکمه‌های کنترل برای کارت', category, 'اضافه شدند');
-	console.log('تعداد دکمه‌ها:', breadcrumbs.querySelectorAll('.card-control-btn').length);
-	console.log('دکمه‌ها:', breadcrumbs.innerHTML);
-	
-		// پاک کردن دکمه‌های قبلی
+    console.log('اضافه کردن دکمه‌های کنترل برای:', category);
+    
+    // پاک کردن دکمه‌های قبلی
     breadcrumbs.querySelectorAll('.card-control-btn').forEach(btn => btn.remove());
+    
+    // فقط اگر در حالت ویرایش هستیم دکمه‌ها رو اضافه کن
+    if (!state.isEditMode) return;
     
     // 1. دکمه حذف دسته‌بندی (فقط در ریشه)
     if (!currentPath || currentPath.length === 0) {
@@ -1114,12 +1115,6 @@ static addControlButtons(breadcrumbs, category, currentPath) {
         delBtn.className = "card-control-btn btn-del-crumb";
         delBtn.innerHTML = "❌";
         delBtn.title = "حذف این دسته‌بندی";
-        delBtn.style.cssText = `
-            background: #ff6b6b;
-            color: white;
-            font-size: 12px;
-            margin-left: 8px;
-        `;
         
         delBtn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -1129,6 +1124,7 @@ static addControlButtons(breadcrumbs, category, currentPath) {
             if (confirm(`آیا از حذف دسته‌بندی "${category}" مطمئن هستید؟`)) {
                 delete state.layoutMap[category];
                 state.bookmarks = state.bookmarks.filter(b => b.category !== category);
+                delete state.currentPaths[category];
                 this.renderDashboard();
             }
         });
@@ -1136,22 +1132,16 @@ static addControlButtons(breadcrumbs, category, currentPath) {
         breadcrumbs.appendChild(delBtn);
     }
     
-    // 2. دکمه افزودن آیتم (همیشه)
+    // 2. دکمه افزودن آیتم
     const addBtn = document.createElement('button');
     addBtn.className = "card-control-btn btn-add-crumb";
     addBtn.innerHTML = "➕";
     addBtn.title = "افزودن آیتم جدید";
-    addBtn.style.cssText = `
-        background: #4CAF50;
-        color: white;
-        font-size: 12px;
-        margin-left: 8px;
-    `;
     
     addBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('کلیک روی افزودن آیتم', category, currentPath);
+        console.log('کلیک روی افزودن آیتم');
         this.openAddModal(category, currentPath);
     });
     
@@ -1162,12 +1152,6 @@ static addControlButtons(breadcrumbs, category, currentPath) {
     viewBtn.className = "card-control-btn btn-view-crumb";
     viewBtn.innerHTML = "👁️";
     viewBtn.title = "تغییر حالت نمایش";
-    viewBtn.style.cssText = `
-        background: #2196F3;
-        color: white;
-        font-size: 12px;
-        margin-left: 8px;
-    `;
     
     viewBtn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -1190,12 +1174,6 @@ static addControlButtons(breadcrumbs, category, currentPath) {
         backBtn.className = "card-control-btn btn-back-crumb";
         backBtn.innerHTML = "↩️";
         backBtn.title = "برگشت به سطح قبل";
-        backBtn.style.cssText = `
-            background: #FF9800;
-            color: white;
-            font-size: 12px;
-            margin-left: 8px;
-        `;
         
         backBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1209,7 +1187,7 @@ static addControlButtons(breadcrumbs, category, currentPath) {
         breadcrumbs.appendChild(backBtn);
     }
     
-    console.log('دکمه‌های کنترل اضافه شدند');
+    console.log('تعداد دکمه‌های اضافه شده:', breadcrumbs.querySelectorAll('.card-control-btn').length);
 }
 
 
