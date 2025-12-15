@@ -1,8 +1,8 @@
 // ==================== تنظیمات اصلی ====================
 const CONFIG = {
     // لینک‌های پیش‌فرض
-    BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/data/bookmarks.json",
-    DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/data/bookmarks.json",
+    BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/NetCofe2/refs/heads/main/data/bookmarks.json",
+    DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/NetCofe2/refs/heads/main/data/bookmarks.json",
     
     // مسیرهای لوکال
     FALLBACK_ICON_PATH: "icons/default_icon.png",
@@ -16,13 +16,13 @@ const CONFIG = {
     
     // کلیدهای localStorage
     STORAGE_KEYS: {
-        LAYOUT: 'netcofe_layout',
-        BACKGROUND: 'netcofe_background',
-        SETTINGS: 'netcofe_settings',
-        THEME: 'netcofe_theme',
-        USER_BOOKMARKS: 'netcofe_user_bookmarks',
-        CUSTOM_URLS: 'netcofe_custom_urls',
-        FAVICON_CACHE: 'netcofe_favicon_cache_v3'
+        LAYOUT: 'NetCofe2_layout',
+        BACKGROUND: 'NetCofe2_background',
+        SETTINGS: 'NetCofe2_settings',
+        THEME: 'NetCofe2_theme',
+        USER_BOOKMARKS: 'NetCofe2_user_bookmarks',
+        CUSTOM_URLS: 'NetCofe2_custom_urls',
+        FAVICON_CACHE: 'NetCofe2_favicon_cache_v3'
     }
 };
 
@@ -1257,9 +1257,9 @@ class App {
             await Renderer.renderDashboard();
             
             // نمایش پیام خوش‌آمدگویی در اولین اجرا
-            const firstRun = !await StorageManager.get('netcofe_first_run');
+            const firstRun = !await StorageManager.get('NetCofe2_first_run');
             if (firstRun) {
-                await StorageManager.set('netcofe_first_run', true);
+                await StorageManager.set('NetCofe2_first_run', true);
                 setTimeout(() => {
                     alert('🎉 به همیار کافینت خوش آمدید!\n\nبرای ویرایش دکمه ✏️ را فشار دهید.\nبوکمارک‌ها از منبع مرکزی بارگیری شده‌اند و می‌توانید آنها را شخصی‌سازی کنید.');
                 }, 1000);

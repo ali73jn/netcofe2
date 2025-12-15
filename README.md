@@ -1,4 +1,4 @@
-# همیار کافینت (NetCofe) - نسخه وب
+# همیار کافینت (NetCofe2) - نسخه وب
 
 ![GitHub](https://img.shields.io/badge/version-1.0-blue)
 ![PWA](https://img.shields.io/badge/PWA-✅-success)
@@ -52,8 +52,8 @@
 ### 2. میزبانی روی سرور
 ```bash
 # کپی کردن فایل‌ها
-git clone https://github.com/username/netcofe-website.git
-cd netcofe-website
+git clone https://github.com/username/NetCofe2-website.git
+cd NetCofe2-website
 
 # آپلود به هاست (مثال با cPanel)
 # یا استفاده از هر سرور استاتیک مانند Nginx/Apache

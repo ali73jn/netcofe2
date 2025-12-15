@@ -1,4 +1,4 @@
-const CACHE_NAME = 'netcofe-v1.0';
+const CACHE_NAME = 'NetCofe2-v1.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
