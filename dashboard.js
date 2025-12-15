@@ -1,13 +1,13 @@
 // ==================== تنظیمات اصلی ====================
 const CONFIG = {
     // لینک‌های پیش‌فرض
-    BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/assets/data/bookmarks.json",
-    DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/assets/data/bookmarks.json",
+    BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/data/bookmarks.json",
+    DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/data/bookmarks.json",
     
     // مسیرهای لوکال
-    FALLBACK_ICON_PATH: "assets/icons/default_icon.png",
-    FOLDER_ICON_PATH: "assets/icons/folder.png",
-    DEFAULT_BG_IMAGE_PATH: "assets/icons/default_bg.jpg",
+    FALLBACK_ICON_PATH: "icons/default_icon.png",
+    FOLDER_ICON_PATH: "icons/folder.png",
+    DEFAULT_BG_IMAGE_PATH: "icons/default_bg.jpg",
     
     // تنظیمات گرید
     GRID_CELL_SIZE: 20,
