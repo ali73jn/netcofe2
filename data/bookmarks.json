@@ -1,118 +1,487 @@
 {
-  "version": "1.0",
-  "last_updated": "2024-01-01",
-  "description": "بوکمارک‌های مرکزی همیار کافینت",
+  "version": "2.0",
+  "last_updated": "2024-01-15",
+  "description": "بوکمارک‌های مرکزی همیار کافینت - تبدیل شده از ویوالدی",
   "bookmarks": [
     {
-      "id": "google",
-      "title": "گوگل",
-      "url": "https://google.com",
-      "category": "موتور جستجو",
-      "description": "موتور جستجوی گوگل",
-      "tags": ["جستجو", "اینترنت", "سرچ"],
-      "icon": "",
-      "date_added": "2024-01-01"
-    },
-    {
-      "id": "github",
-      "title": "GitHub",
-      "url": "https://github.com",
-      "category": "توسعه",
-      "description": "پلتفرم توسعه نرم‌افزار",
-      "tags": ["کد", "برنامه‌نویسی", "منبع‌باز"],
-      "icon": "",
-      "date_added": "2024-01-01"
-    },
-    {
-      "id": "youtube",
-      "title": "یوتیوب",
-      "url": "https://youtube.com",
-      "category": "رسانه",
-      "description": "پلتفرم اشتراک ویدیو",
-      "tags": ["ویدیو", "آموزش", "سرگرمی"],
-      "icon": "",
-      "date_added": "2024-01-01"
-    },
-    {
-      "id": "wikipedia",
-      "title": "ویکی‌پدیا",
-      "url": "https://wikipedia.org",
-      "category": "دانش",
-      "description": "دانشنامه آزاد",
-      "tags": ["دانش", "تحقیق", "اطلاعات"],
-      "icon": "",
-      "date_added": "2024-01-01"
-    },
-    {
-      "id": "stackoverflow",
-      "title": "Stack Overflow",
-      "url": "https://stackoverflow.com",
-      "category": "توسعه",
-      "description": "پرسش و پاسخ برنامه‌نویسی",
-      "tags": ["کمک", "برنامه‌نویسی", "سوال"],
-      "icon": "",
-      "date_added": "2024-01-01"
-    },
-    {
-      "id": "twitter",
-      "title": "توییتر (X)",
-      "url": "https://twitter.com",
-      "category": "شبکه اجتماعی",
-      "description": "شبکه اجتماعی میکروبلاگینگ",
-      "tags": ["اجتماعی", "اخبار", "تعامل"],
-      "icon": "",
-      "date_added": "2024-01-01"
-    },
-    {
-      "id": "instagram",
-      "title": "اینستاگرام",
-      "url": "https://instagram.com",
-      "category": "شبکه اجتماعی",
-      "description": "اشتراک عکس و ویدیو",
-      "tags": ["عکس", "اجتماعی", "سرگرمی"],
-      "icon": "",
-      "date_added": "2024-01-01"
-    },
-    {
-      "id": "whatsapp",
-      "title": "واتساپ وب",
-      "url": "https://web.whatsapp.com",
-      "category": "پیام‌رسان",
-      "description": "پیام‌رسان تحت وب",
-      "tags": ["چت", "پیام", "ارتباط"],
-      "icon": "",
-      "date_added": "2024-01-01"
-    },
-    {
-      "id": "telegram",
-      "title": "تلگرام وب",
-      "url": "https://web.telegram.org",
-      "category": "پیام‌رسان",
-      "description": "پیام‌رسان سریع و امن",
-      "tags": ["چت", "کانال", "گروه"],
-      "icon": "",
-      "date_added": "2024-01-01"
-    },
-    {
-      "id": "folder-social",
-      "title": "شبکه‌های اجتماعی",
+      "id": "658",
+      "title": "خودرو",
       "type": "folder",
-      "category": "سایر",
-      "description": "پوشه شبکه‌های اجتماعی",
-      "tags": ["اجتماعی", "ارتباط"],
+      "category": "خودرو",
+      "description": "",
+      "tags": ["سایت های کاربردی "],
       "children": [
         {
-          "id": "twitter-folder",
-          "title": "توییتر",
-          "url": "https://twitter.com"
+          "id": "655",
+          "title": "کارت سوخت",
+          "type": "folder",
+          "category": "کارت سوخت",
+          "description": "",
+          "tags": ["خودرو"],
+          "children": [
+            {
+              "id": "460",
+              "title": "درخواست سوخت",
+              "url": "https://fcs.niopdc.ir/",
+              "category": "کارت سوخت",
+              "description": "",
+              "tags": ["کارت سوخت"],
+              "icon": "",
+              "date_added": "2025-05-15"
+            },
+            {
+              "id": "654",
+              "title": "کارت سوخت",
+              "url": "https://eservice.niopdc.ir/",
+              "category": "کارت سوخت",
+              "description": "",
+              "tags": ["کارت سوخت"],
+              "icon": "",
+              "date_added": "2025-12-15"
+            },
+            {
+              "id": "656",
+              "title": "تجارت آسان (سدف) | NIOPDC",
+              "url": "https://newtejaratasan.niopdc.ir/",
+              "category": "کارت سوخت",
+              "description": "",
+              "tags": ["کارت سوخت"],
+              "icon": "",
+              "date_added": "2025-12-15"
+            }
+          ]
         },
         {
-          "id": "instagram-folder",
-          "title": "اینستاگرام",
-          "url": "https://instagram.com"
+          "id": "610",
+          "title": "تعویض پلاک",
+          "type": "folder",
+          "category": "تعویض پلاک",
+          "description": "",
+          "tags": ["خودرو"],
+          "children": [
+            {
+              "id": "612",
+              "title": "سخا",
+              "url": "https://sakha.epolice.ir/",
+              "category": "تعویض پلاک",
+              "description": "",
+              "tags": ["تعویض پلاک"],
+              "icon": "#FFFFFF",
+              "date_added": "2025-11-15"
+            },
+            {
+              "id": "611",
+              "title": "نوبت تعویض پلاک",
+              "url": "https://nobat.epolice.ir/login",
+              "category": "تعویض پلاک",
+              "description": "",
+              "tags": ["تعویض پلاک"],
+              "icon": "#CCCCCC",
+              "date_added": "2025-11-15"
+            }
+          ]
+        },
+        {
+          "id": "617",
+          "title": "عوارض",
+          "type": "folder",
+          "category": "عوارض",
+          "description": "",
+          "tags": ["خودرو"],
+          "children": [
+            {
+              "id": "264",
+              "title": "پرداخت عوارض و طرح ترافیک",
+              "url": "https://cartax.urmia.ir/",
+              "category": "عوارض",
+              "description": "سامانه یکپارچه و متمرکز وصول عوارض سالیانه خودرو",
+              "tags": ["عوارض"],
+              "icon": "#FFFFFF",
+              "date_added": "2025-02-15"
+            },
+            {
+              "id": "619",
+              "title": "خدمات خودرو",
+              "url": "https://itoll.com/",
+              "category": "عوارض",
+              "description": "آیتول سامانه مدیریت یکپارچه خودرو| استعلام و پرداخت عوارض سالیانه خودرو | پرداخت عوارض آزادراهی | استعلام و پرداخت خلافی خودرو | طرح ترافیک | مالیات نقل و انتقال خودرو | خرید اقساط بیمه شخص ثالث و بدنه | تعویض فوری باتری در محل و ...",
+              "tags": ["عوارض"],
+              "icon": "",
+              "date_added": "2025-11-15"
+            },
+            {
+              "id": "620",
+              "title": "قبضینو",
+              "url": "https://ghabzino.com/",
+              "category": "عوارض",
+              "description": "قبضینو زیرساخت استعلام و پرداخت انواع قبض ‌ها شامل خلافی و جرایم، آب، برق، تلفن ثابت، تلفن همراه، گاز و ... است. تجمیع کلیه قبض‌ ها با قبضینو، پرداخت همه صورت الحساب خود با یک کلیک. با استعلام هوشمند قبضینو بلافاصله از قبض‌ های جدید خود مطلع شوید. اپلیکیشن پرداخت قبض قبضینو، سامانه مدیریت قبوض و استعلام قبض قبضینو.",
+              "tags": ["عوارض"],
+              "icon": "#339966",
+              "date_added": "2025-11-15"
+            }
+          ]
+        },
+        {
+          "id": "609",
+          "title": "مالیات",
+          "type": "folder",
+          "category": "مالیات",
+          "description": "",
+          "tags": ["خودرو"],
+          "children": [
+            {
+              "id": "446",
+              "title": "استعلام پرداخت مالیات",
+              "url": "https://cartransfer.tax.gov.ir/",
+              "category": "مالیات",
+              "description": "",
+              "tags": ["مالیات"],
+              "icon": "",
+              "date_added": "2025-05-10"
+            },
+            {
+              "id": "155",
+              "title": "استعلام مالیات و عوارض خودرو",
+              "url": "https://serwis.ir/toll/",
+              "category": "مالیات",
+              "description": "",
+              "tags": ["مالیات"],
+              "icon": "#FFFFFF",
+              "date_added": "2024-12-28"
+            },
+            {
+              "id": "592",
+              "title": "سکوی وصول مالیات وسایل نقلیه",
+              "url": "https://etax.ir/app/search",
+              "category": "مالیات",
+              "description": "",
+              "tags": ["مالیات"],
+              "icon": "#1976D2",
+              "date_added": "2025-09-27"
+            }
+          ]
         }
-      ],
-      "date_added": "2024-01-01"
+      ]
+    },
+    {
+      "id": "340",
+      "title": "بیمه",
+      "type": "folder",
+      "category": "بیمه",
+      "description": "",
+      "tags": ["سایت های کاربردی "],
+      "children": [
+        {
+          "id": "621",
+          "title": "تامین اجتماعی",
+          "type": "folder",
+          "category": "تامین اجتماعی",
+          "description": "",
+          "tags": ["بیمه"],
+          "children": [
+            {
+              "id": "483",
+              "title": "مرخصی زایمان",
+              "url": "https://eservices.tamin.ir/view/#/stp/pregnancy",
+              "category": "تامین اجتماعی",
+              "description": "",
+              "tags": ["تامین اجتماعی"],
+              "icon": "#1976D2",
+              "date_added": "2025-06-07"
+            },
+            {
+              "id": "378",
+              "title": "قبض بیمه",
+              "url": "https://samt.tamin.ir/portal/template/fa/top_page_fa.jsp",
+              "category": "تامین اجتماعی",
+              "description": "",
+              "tags": ["تامین اجتماعی"],
+              "icon": "#FFFFFF",
+              "date_added": "2025-04-15"
+            },
+            {
+              "id": "265",
+              "title": "تامین اجتماعی",
+              "url": "https://eservices.tamin.ir/view/#/main",
+              "category": "تامین اجتماعی",
+              "description": "",
+              "tags": ["تامین اجتماعی"],
+              "icon": "#1976D2",
+              "date_added": "2025-02-16"
+            },
+            {
+              "id": "399",
+              "title": "تامین من",
+              "url": "https://app.tamin.ir/pwa/#/app/tabs/treatment",
+              "category": "تامین اجتماعی",
+              "description": "اپلیکیشن تامین من تمامی سرویس‌های موجود و همچنین خدمات غیر حضوری جدید سازمان تامین اجتماعی را در یک درگاه مجتمع و یکپارچه در خود جای داده است. این اپلیکیشن مرجع مطمئن و سریعی را جهت آگاهی و استفاده از سرویس‌های جدید برای مخاطبین سازمان فراهم آورده است.",
+              "tags": ["تامین اجتماعی"],
+              "icon": "#4947AE",
+              "date_added": "2025-04-21"
+            }
+          ]
+        },
+        {
+          "id": "624",
+          "title": "خودرو",
+          "type": "folder",
+          "category": "خودرو",
+          "description": "",
+          "tags": ["بیمه"],
+          "children": [
+            {
+              "id": "594",
+              "title": "بیمه‌بازار",
+              "url": "https://shoraka.net/",
+              "category": "خودرو",
+              "description": "شرکای بیمه‌بازار",
+              "tags": ["خودرو"],
+              "icon": "",
+              "date_added": "2025-10-13"
+            },
+            {
+              "id": "294",
+              "title": "بیمه دات کام ",
+              "url": "https://plusbimeh.com/",
+              "category": "خودرو",
+              "description": "استعلام و خرید آنلاین بیمه",
+              "tags": ["خودرو"],
+              "icon": "#FFFFFF",
+              "date_added": "2025-02-28"
+            },
+            {
+              "id": "438",
+              "title": "استعلام بیمه شخص ثالث",
+              "url": "https://bimebazar.com/sanhabInquiry/",
+              "category": "خودرو",
+              "description": "استعلام بیمه شخص ثالث خودرو با کد ملی و پلاک از سامانه سنهاب بیمه مرکزی به صورت رایگان، آنلاین و آنی",
+              "tags": ["خودرو"],
+              "icon": "",
+              "date_added": "2025-05-07"
+            },
+            {
+              "id": "518",
+              "title": "استعلام بیمه نامه",
+              "url": "https://centinsur.ir/fa-IR/Portal/4987/page/%D8%A7%D8%B3%D8%AA%D8%B9%D9%84%D8%A7%D9%85-%D8%A8%DB%8C%D9%85%D9%87-%D9%86%D8%A7%D9%85%D9%87-",
+              "category": "خودرو",
+              "description": "بیمه مرکزی جمهوری اسلامی ایران",
+              "tags": ["خودرو"],
+              "icon": "#DA684A",
+              "date_added": "2025-08-28"
+            }
+          ]
+        },
+        {
+          "id": "353",
+          "title": "سامانه جامع تسهیلات اشتغال کشور",
+          "url": "https://tek.mcls.gov.ir/addRequest/0_46_n0",
+          "category": "بیمه",
+          "description": "سامانه جامع تسهیلات اشتغال کشور | وزارت تعاون، کار و رفاه اجتماعی",
+          "tags": ["بیمه"],
+          "icon": "",
+          "date_added": "2025-04-04"
+        },
+        {
+          "id": "164",
+          "title": "درخواست بیمه بیکاری",
+          "url": "https://prkar.mcls.gov.ir/Login",
+          "category": "بیمه",
+          "description": "",
+          "tags": ["بیمه"],
+          "icon": "",
+          "date_added": "2024-12-28"
+        }
+      ]
+    },
+    {
+      "id": "237",
+      "title": "فیلم و سریال",
+      "type": "folder",
+      "category": "فیلم و سریال",
+      "description": "",
+      "tags": [],
+      "children": [
+        {
+          "id": "239",
+          "title": "خارجی",
+          "type": "folder",
+          "category": "خارجی",
+          "description": "",
+          "tags": ["فیلم و سریال"],
+          "children": [
+            {
+              "id": "370",
+              "title": "رکسیما",
+              "url": "https://rexcima.com/",
+              "category": "خارجی",
+              "description": "رکسیما مرجع تخصصی فیلم سریال",
+              "tags": ["خارجی"],
+              "icon": "#FFFFFF",
+              "date_added": "2025-04-12"
+            },
+            {
+              "id": "371",
+              "title": "مووی پووی - دانلود رایگان فیلم و سریال",
+              "url": "https://moviepovie.com/",
+              "category": "خارجی",
+              "description": "دانلود رایگان فیلم و سریال",
+              "tags": ["خارجی"],
+              "icon": "#1E1121",
+              "date_added": "2025-04-12"
+            },
+            {
+              "id": "351",
+              "title": "فیلم 2 مدیا Film2Media | دانلود فیلم و سریال بدون سانسور با زیرنویس فارسی چسبیده",
+              "url": "https://www.f2medi.ir/",
+              "category": "خارجی",
+              "description": "دانلود فیلم بدون سانسور , دانلود رایگان فیلم , دانلود فیلم , دانلود فیلم با زیرنویس فارسی چسبیده , پخش آنلاین فیلم و سریال , دانلود سریال بدون سانسور , دانلود فیلم جدید , فیلم جدید , فیلم 2 مدیا",
+              "tags": ["خارجی"],
+              "icon": "#96F207",
+              "date_added": "2025-03-30"
+            },
+            {
+              "id": "372",
+              "title": "دنیای سریال - دانلود فیلم و سریال خارجی بدون سانسور کاملا رایگان",
+              "url": "https://donyayeserial.com/",
+              "category": "خارجی",
+              "description": "دانلود فیلم و سریال های خارجی بدون سانسور به همراه زیرنویس و دوبله فارسی کاملا رایگان",
+              "tags": ["خارجی"],
+              "icon": "#FFFFFF",
+              "date_added": "2025-04-12"
+            }
+          ]
+        },
+        {
+          "id": "238",
+          "title": "ایرانی",
+          "type": "folder",
+          "category": "ایرانی",
+          "description": "",
+          "tags": ["فیلم و سریال"],
+          "children": [
+            {
+              "id": "242",
+              "title": "Home - Farsihubz",
+              "url": "https://farsihubz.com/",
+              "category": "ایرانی",
+              "description": "Welcome to Farsihubz به سایت فارسی هاب خوش آمدید روی دکمه زیر کلیک کنید تا وارد سایت فارسی هاب شوید",
+              "tags": ["ایرانی"],
+              "icon": "#FFFFFF",
+              "date_added": "2025-02-06"
+            },
+            {
+              "id": "243",
+              "title": "Entrance Page - Watch Iranian Series and Movies - persianboxx",
+              "url": "https://www.persianboxx.com/",
+              "category": "ایرانی",
+              "description": "PersianMoviesBox (ایرانیان باکس) is a Platform where all Persian Movies and Series can be streamed online for free.",
+              "tags": ["ایرانی"],
+              "icon": "#FFFFFF",
+              "date_added": "2025-02-06"
+            },
+            {
+              "id": "368",
+              "title": "Watch Iranian Serial and Movies - Farsihubz",
+              "url": "https://patvat.xyz/",
+              "category": "ایرانی",
+              "description": "Stream Persian Series for free on Farshub. Watch a large selection of Iranian Movies produced in high quality on our website.",
+              "tags": ["ایرانی"],
+              "icon": "#FFFFFF",
+              "date_added": "2025-04-12"
+            },
+            {
+              "id": "369",
+              "title": "DIYCraftsGuide.com - Watch Live TV Online For Free",
+              "url": "https://www.diycraftsguide.com/SafeAval.html",
+              "category": "ایرانی",
+              "description": "Watch Live TV Online for Free at LiveFarsi",
+              "tags": ["ایرانی"],
+              "icon": "",
+              "date_added": "2025-04-12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "225",
+      "title": "شبکه اجتماعی",
+      "type": "folder",
+      "category": "شبکه اجتماعی",
+      "description": "",
+      "tags": [],
+      "children": [
+        {
+          "id": "223",
+          "title": "ایتا",
+          "url": "https://web.eitaa.com/#333000",
+          "category": "شبکه اجتماعی",
+          "description": "",
+          "tags": ["شبکه اجتماعی"],
+          "icon": "#79A541",
+          "date_added": "2025-02-03"
+        },
+        {
+          "id": "224",
+          "title": "روبیکا",
+          "url": "https://web.rubika.ir/#",
+          "category": "شبکه اجتماعی",
+          "description": "",
+          "tags": ["شبکه اجتماعی"],
+          "icon": "#497495",
+          "date_added": "2025-02-03"
+        },
+        {
+          "id": "244",
+          "title": "واتساپ",
+          "url": "https://web.whatsapp.com/",
+          "category": "شبکه اجتماعی",
+          "description": "پیام‌های واتساپ را سریع مستقیماً از رایانه‌تان ارسال و دریافت کنید.",
+          "tags": ["شبکه اجتماعی"],
+          "icon": "#F7F5F3",
+          "date_added": "2025-02-06"
+        },
+        {
+          "id": "255",
+          "title": "بله",
+          "url": "https://web.bale.ai/chat",
+          "category": "شبکه اجتماعی",
+          "description": "با استفاده از نسخۀ وب «بله» می‌توانید به‌راحتی از طریق رایانۀ شخصی یا گوشی‌های iOS به این پیام‌رسان بانکی بپیوندید و از امکانات هیجان‌انگیز بله استفاده کنید.",
+          "tags": ["شبکه اجتماعی"],
+          "icon": "#FFFFFF",
+          "date_added": "2025-02-15"
+        },
+        {
+          "id": "341",
+          "title": "شاد",
+          "url": "https://web.shad.ir/#/login",
+          "category": "شبکه اجتماعی",
+          "description": "Welcome to the Web application of Shad messenger.",
+          "tags": ["شبکه اجتماعی"],
+          "icon": "#497495",
+          "date_added": "2025-03-24"
+        },
+        {
+          "id": "156",
+          "title": "Gmail",
+          "url": "https://mail.google.com/mail/u/0/#inbox",
+          "category": "شبکه اجتماعی",
+          "description": "",
+          "tags": ["شبکه اجتماعی"],
+          "icon": "",
+          "date_added": "2024-12-28"
+        },
+        {
+          "id": "157",
+          "title": "Drive",
+          "url": "https://drive.google.com/drive/my-drive",
+          "category": "شبکه اجتماعی",
+          "description": "",
+          "tags": ["شبکه اجتماعی"],
+          "icon": "",
+          "date_added": "2024-12-28"
+        }
+      ]
     }
   ]
 }
