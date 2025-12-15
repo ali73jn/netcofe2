@@ -1,30 +1,20 @@
-console.log('🚀 dashboard.js لود شد');
-console.log('DOM loaded:', document.readyState);
-
-// بررسی وجود المنت‌های ضروری
-console.log('grid-container:', document.getElementById('grid-container'));
-console.log('loading-spinner:', document.querySelector('.loading-spinner'));
-
 // ==================== تنظیمات اصلی ====================
 const CONFIG = {
-    // 🚨 مهم: این آدرس رو درست کن
-    // اگر روی GitHub Pages هستی، باید آدرس کامل باشه
-    BOOKMARKS_JSON_URL: window.location.hostname.includes('github.io') 
-        ? window.location.pathname.replace(/\/$/, '') + '/assets/data/bookmarks.json'
-        : './assets/data/bookmarks.json',
+    // لینک‌های پیش‌فرض
+    BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/assets/data/bookmarks.json",
+    DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/assets/data/bookmarks.json",
     
-    DEFAULT_BOOKMARKS_URL: './assets/data/bookmarks.json',
+    // مسیرهای لوکال
+    FALLBACK_ICON_PATH: "assets/icons/default_icon.png",
+    FOLDER_ICON_PATH: "assets/icons/folder.png",
+    DEFAULT_BG_IMAGE_PATH: "assets/icons/default_bg.jpg",
     
-    // 🚨 مسیر آیکون‌ها رو اصلاح کن
-    FALLBACK_ICON_PATH: './assets/icons/default_icon.png',
-    FOLDER_ICON_PATH: './assets/icons/folder.png',
-    DEFAULT_BG_IMAGE_PATH: './assets/icons/default_bg.jpg',
-    
-    // بقیه تنظیمات...
+    // تنظیمات گرید
     GRID_CELL_SIZE: 20,
     GRID_GAP: 2,
     HORIZONTAL_PIXEL_OFFSET: 0,
     
+    // کلیدهای localStorage
     STORAGE_KEYS: {
         LAYOUT: 'netcofe_layout',
         BACKGROUND: 'netcofe_background',
@@ -35,10 +25,6 @@ const CONFIG = {
         FAVICON_CACHE: 'netcofe_favicon_cache_v3'
     }
 };
-
-console.log('📍 آدرس فعلی:', window.location.href);
-console.log('📍 مسیر JSON:', CONFIG.BOOKMARKS_JSON_URL);
-
 
 // ==================== وضعیت برنامه ====================
 let state = {
@@ -1246,269 +1232,65 @@ class EventManager {
         alert('تنظیمات با موفقیت ذخیره شدند.');
     }
 }
+
 // ==================== Initialize Application ====================
 class App {
     static async init() {
-        console.log('🎯 App.init شروع شد');
-        
         try {
-            // 1. ابتدا اسپینر رو حذف نکن! فقط مخفی کن
-            const spinner = document.querySelector('.loading-spinner');
-            if (spinner) {
-                spinner.style.opacity = '0.5';
-            }
+            // حذف اسپینر لودینگ
+            document.querySelector('.loading-spinner')?.remove();
             
-            // 2. بارگذاری ساده‌شده
-            console.log('🔧 مرحله 1: بارگذاری تنظیمات');
+            // بارگذاری اولیه
+            await ThemeManager.init();
+            await BackgroundManager.applySavedBackground();
             
-            // تم
-            const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
-            if (savedTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                state.isDarkMode = true;
-            }
+            // بارگذاری layout
+            state.layoutMap = await StorageManager.get(CONFIG.STORAGE_KEYS.LAYOUT) || {};
             
-            // Layout
-            const savedLayout = localStorage.getItem(CONFIG.STORAGE_KEYS.LAYOUT);
-            if (savedLayout) {
-                state.layoutMap = JSON.parse(savedLayout);
-            }
+            // بارگذاری بوکمارک‌ها
+            await BookmarkManager.loadBookmarks();
             
-            // پس‌زمینه
-            const bg = localStorage.getItem(CONFIG.STORAGE_KEYS.BACKGROUND);
-            if (bg) {
-                document.body.style.backgroundImage = `url(${bg})`;
-            } else {
-                document.body.style.backgroundImage = `url(${CONFIG.DEFAULT_BG_IMAGE_PATH})`;
-            }
-            document.body.style.backgroundSize = 'cover';
+            // تنظیم رویدادها
+            EventManager.setup();
             
-            // 3. بارگذاری بوکمارک‌ها
-            console.log('🔧 مرحله 2: بارگذاری بوکمارک‌ها');
-            await this.loadBookmarksSimple();
+            // رندر اولیه
+            await Renderer.renderDashboard();
             
-            // 4. رندر
-            console.log('🔧 مرحله 3: رندر کردن');
-            await this.renderSimple();
-            
-            // 5. رویدادها
-            console.log('🔧 مرحله 4: تنظیم رویدادها');
-            this.setupEventsSimple();
-            
-            // 6. حذف اسپینر
-            if (spinner) {
-                spinner.style.transition = 'opacity 0.5s';
-                spinner.style.opacity = '0';
+            // نمایش پیام خوش‌آمدگویی در اولین اجرا
+            const firstRun = !await StorageManager.get('netcofe_first_run');
+            if (firstRun) {
+                await StorageManager.set('netcofe_first_run', true);
                 setTimeout(() => {
-                    if (spinner.parentNode) {
-                        spinner.parentNode.removeChild(spinner);
-                    }
-                }, 500);
+                    alert('🎉 به همیار کافینت خوش آمدید!\n\nبرای ویرایش دکمه ✏️ را فشار دهید.\nبوکمارک‌ها از منبع مرکزی بارگیری شده‌اند و می‌توانید آنها را شخصی‌سازی کنید.');
+                }, 1000);
             }
-            
-            console.log('✅ App.init با موفقیت پایان یافت');
             
         } catch (error) {
-            console.error('❌ خطا در App.init:', error);
-            this.showError(error.message);
-        }
-    }
-    
-    static async loadBookmarksSimple() {
-        try {
-            console.log('📖 در حال دریافت بوکمارک‌ها از:', CONFIG.BOOKMARKS_JSON_URL);
-            
-            const response = await fetch(CONFIG.BOOKMARKS_JSON_URL);
-            
-            if (!response.ok) {
-                throw new Error(`خطای HTTP: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            state.bookmarks = data.bookmarks || data || [];
-            
-            console.log(`📚 ${state.bookmarks.length} بوکمارک لود شد`);
-            
-        } catch (error) {
-            console.warn('⚠️ استفاده از بوکمارک‌های پیش‌فرض:', error.message);
-            
-            // بوکمارک‌های پیش‌فرض
-            state.bookmarks = [
-                {
-                    id: '1',
-                    title: 'گوگل',
-                    url: 'https://google.com',
-                    category: 'موتور جستجو',
-                    description: 'موتور جستجوی گوگل'
-                },
-                {
-                    id: '2',
-                    title: 'GitHub',
-                    url: 'https://github.com',
-                    category: 'توسعه',
-                    description: 'پلتفرم توسعه نرم‌افزار'
-                },
-                {
-                    id: '3',
-                    title: 'یوتیوب',
-                    url: 'https://youtube.com',
-                    category: 'رسانه',
-                    description: 'پلتفرم ویدیو'
-                }
-            ];
-        }
-    }
-    
-    static async renderSimple() {
-        const container = document.getElementById('grid-container');
-        if (!container) {
-            console.error('❌ grid-container پیدا نشد!');
-            return;
-        }
-        
-        // پاک کردن
-        container.innerHTML = '';
-        
-        // اگر بوکمارک نداریم
-        if (state.bookmarks.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 50px; grid-column: 1 / -1;">
-                    <h3>📚 بوکمارکی یافت نشد</h3>
-                    <p>برای شروع، دکمه ✏️ را فشار داده و بوکمارک جدید اضافه کنید.</p>
-                </div>
-            `;
-            return;
-        }
-        
-        // گروه‌بندی بر اساس دسته
-        const categories = {};
-        state.bookmarks.forEach(item => {
-            const cat = item.category || 'سایر';
-            if (!categories[cat]) categories[cat] = [];
-            categories[cat].push(item);
-        });
-        
-        // ایجاد کارت‌ها
-        Object.entries(categories).forEach(([category, items], index) => {
-            const card = document.createElement('div');
-            card.className = 'bookmark-card';
-            
-            // موقعیت در گرید
-            const colStart = (index % 3) * 8 + 1;
-            const rowStart = Math.floor(index / 3) * 6 + 1;
-            
-            card.style.gridColumnStart = colStart;
-            card.style.gridRowStart = rowStart;
-            card.style.gridColumnEnd = `span 8`;
-            card.style.gridRowEnd = `span 6`;
-            card.style.width = `${8 * CONFIG.GRID_CELL_SIZE + 7 * CONFIG.GRID_GAP}px`;
-            
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="card-title">${category} (${items.length})</div>
-                    <button class="card-btn btn-drag">::</button>
-                </div>
-                <div class="card-content">
-                    <div class="bookmark-tiles">
-                        ${items.map(item => `
-                            <a href="${item.url || '#'}" class="tile" target="_blank" title="${item.description || ''}">
-                                <img src="${CONFIG.FALLBACK_ICON_PATH}" class="tile-icon">
-                                <div class="tile-name">${item.title}</div>
-                            </a>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            
-            container.appendChild(card);
-        });
-        
-        console.log(`🎨 ${Object.keys(categories).length} کارت رندر شد`);
-    }
-    
-    static setupEventsSimple() {
-        console.log('🎮 تنظیم رویدادها');
-        
-        // دکمه ویرایش
-        const editBtn = document.getElementById('edit-mode-btn');
-        if (editBtn) {
-            editBtn.addEventListener('click', () => {
-                state.isEditMode = !state.isEditMode;
-                editBtn.textContent = state.isEditMode ? '✅' : '✏️';
-                editBtn.title = state.isEditMode ? 'خروج از حالت ویرایش' : 'حالت ویرایش';
-                
-                // نمایش/مخفی کردن منوی فرعی
-                const subControls = document.getElementById('sub-controls');
-                if (subControls) {
-                    if (state.isEditMode) {
-                        subControls.classList.remove('hidden-controls');
-                        subControls.classList.add('visible-controls');
-                    } else {
-                        subControls.classList.remove('visible-controls');
-                        subControls.classList.add('hidden-controls');
-                    }
-                }
-                
-                // نمایش دکمه‌های ویرایش در کارت‌ها
-                document.body.classList.toggle('editing-mode', state.isEditMode);
-            });
-        }
-        
-        // سایر دکمه‌های ساده
-        const buttons = {
-            'add-card-btn': () => alert('افزودن کارت - در حال توسعه'),
-            'refresh-bookmarks-btn': () => location.reload(),
-            'toggle-theme-btn': () => {
-                state.isDarkMode = !state.isDarkMode;
-                document.documentElement.setAttribute('data-theme', state.isDarkMode ? 'dark' : 'light');
-                localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, state.isDarkMode ? 'dark' : 'light');
-            }
-        };
-        
-        Object.entries(buttons).forEach(([id, handler]) => {
-            const btn = document.getElementById(id);
-            if (btn) {
-                btn.addEventListener('click', handler);
-            }
-        });
-        
-        console.log('✅ رویدادها تنظیم شدند');
-    }
-    
-    static showError(message) {
-        const container = document.getElementById('grid-container');
-        if (container) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 50px; grid-column: 1 / -1;">
-                    <h3 style="color: #dc3545;">⚠️ خطا</h3>
-                    <p>${message}</p>
-                    <button onclick="location.reload()" style="
-                        padding: 10px 20px;
-                        background: #007bff;
-                        color: white;
-                        border: none;
-                        border-radius: 5px;
-                        margin: 10px;
-                        cursor: pointer;
-                    ">
-                        تلاش مجدد
-                    </button>
+            console.error('خطا در راه‌اندازی برنامه:', error);
+            document.getElementById('grid-container').innerHTML = `
+                <div class="error-state">
+                    <h3>❌ خطا در راه‌اندازی</h3>
+                    <p>${error.message}</p>
+                    <button onclick="location.reload()" class="btn-success">تلاش مجدد</button>
                 </div>
             `;
         }
     }
 }
 
-// 🚀 شروع برنامه
-console.log('🌟 همیار کافینت در حال راه‌اندازی...');
-
-// صبر کن تا DOM کامل لود بشه
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('✅ DOM آماده است');
-        setTimeout(() => App.init(), 100);
-    });
-} else {
-    console.log('✅ DOM از قبل آماده است');
-    setTimeout(() => App.init(), 100);
-}
+// ==================== راه‌اندازی برنامه ====================
+document.addEventListener('DOMContentLoaded', () => {
+    App.init();
+    
+    // نمایش وضعیت آنلاین/آفلاین
+    const updateOnlineStatus = () => {
+        const indicator = document.getElementById('offline-indicator');
+        if (indicator) {
+            indicator.classList.toggle('hidden', navigator.onLine);
+        }
+    };
+    
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+});
