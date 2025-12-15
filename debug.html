@@ -27,7 +27,7 @@
         
         async function testFetch() {
             try {
-                const response = await fetch('assets/data/bookmarks.json');
+                const response = await fetch('data/bookmarks.json');
                 const data = await response.json();
                 document.getElementById('result').innerHTML = 
                     `✅ دریافت بوکمارک‌ها موفق: ${data.bookmarks.length} آیتم`;

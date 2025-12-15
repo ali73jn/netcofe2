@@ -2,13 +2,13 @@ const CACHE_NAME = 'netcofe-v1.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/assets/css/dashboard.css',
-  '/assets/js/dashboard.js',
-  '/assets/icons/icon-192.png',
-  '/assets/icons/icon-512.png',
-  '/assets/icons/default_icon.png',
-  '/assets/icons/folder.png',
-  '/assets/icons/default_bg.jpg',
+  '/css/dashboard.css',
+  '/js/dashboard.js',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/default_icon.png',
+  '/icons/folder.png',
+  '/icons/default_bg.jpg',
   '/manifest.webmanifest'
 ];
 
