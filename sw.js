@@ -2,8 +2,8 @@ const CACHE_NAME = 'netcofe-v1.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/css/dashboard.css',
-  '/js/dashboard.js',
+  '/dashboard.css',
+  '/dashboard.js',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/default_icon.png',
