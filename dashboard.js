@@ -1094,59 +1094,118 @@ static navigateToPath(category, newPath) {
         }
     }
 
-    static addControlButtons(breadcrumbs, category, currentPath) {
-        // پاک کردن دکمه‌های قبلی
-        breadcrumbs.querySelectorAll('.card-control-btn').forEach(btn => btn.remove());
+ // ==================== تابع addControlButtons رو کامل بازنویسی می‌کنیم ====================
+static addControlButtons(breadcrumbs, category, currentPath) {
+    if (!breadcrumbs) return;
+    
+    console.log('اضافه کردن دکمه‌های کنترل برای:', category, 'مسیر:', currentPath);
+    
+    // پاک کردن دکمه‌های قبلی
+    breadcrumbs.querySelectorAll('.card-control-btn').forEach(btn => btn.remove());
+    
+    // 1. دکمه حذف دسته‌بندی (فقط در ریشه)
+    if (!currentPath || currentPath.length === 0) {
+        const delBtn = document.createElement('button');
+        delBtn.className = "card-control-btn btn-del-crumb";
+        delBtn.innerHTML = "❌";
+        delBtn.title = "حذف این دسته‌بندی";
+        delBtn.style.cssText = `
+            background: #ff6b6b;
+            color: white;
+            font-size: 12px;
+            margin-left: 8px;
+        `;
         
-        // دکمه حذف دسته‌بندی (فقط در ریشه)
-        if (!currentPath || currentPath.length === 0) {
-            const delBtn = document.createElement('button');
-            delBtn.className = "card-control-btn btn-del-crumb";
-            delBtn.textContent = "❌";
-            delBtn.title = "حذف این دسته‌بندی";
-            delBtn.addEventListener("click", () => {
-                if (confirm(`آیا از حذف دسته‌بندی "${category}" مطمئن هستید؟`)) {
-                    delete state.layoutMap[category];
-                    state.bookmarks = state.bookmarks.filter(b => b.category !== category);
-                    this.renderDashboard();
-                }
-            });
-            breadcrumbs.appendChild(delBtn);
-        }
-        
-        // دکمه افزودن آیتم
-        const addBtn = document.createElement('button');
-        addBtn.className = "card-control-btn btn-add-crumb";
-        addBtn.textContent = "➕";
-        addBtn.title = "افزودن آیتم جدید";
-        addBtn.addEventListener('click', () => this.openAddModal(category, currentPath));
-        breadcrumbs.appendChild(addBtn);
-        
-        // دکمه تغییر حالت نمایش
-        const viewBtn = document.createElement('button');
-        viewBtn.className = "card-control-btn btn-view-crumb";
-        viewBtn.textContent = "👁️";
-        viewBtn.title = "تغییر حالت نمایش";
-        viewBtn.addEventListener("click", () => {
-            const layout = state.layoutMap[category];
-            layout.view = layout.view === "grid" ? "list" : "grid";
-            this.renderDashboard();
+        delBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('کلیک روی حذف دسته‌بندی');
+            
+            if (confirm(`آیا از حذف دسته‌بندی "${category}" مطمئن هستید؟`)) {
+                delete state.layoutMap[category];
+                state.bookmarks = state.bookmarks.filter(b => b.category !== category);
+                this.renderDashboard();
+            }
         });
-        breadcrumbs.appendChild(viewBtn);
         
-        // اگر در پوشه‌ای هستیم، دکمه برگشت اضافه کن
-        if (currentPath && currentPath.length > 0) {
-            const backBtn = document.createElement('button');
-            backBtn.className = "card-control-btn btn-back-crumb";
-            backBtn.textContent = "↩️";
-            backBtn.title = "برگشت به سطح قبل";
-            backBtn.addEventListener('click', () => {
-                const newPath = currentPath.slice(0, -1);
-                this.navigateToPath(category, newPath);
-            });
-            breadcrumbs.appendChild(backBtn);
-        }
+        breadcrumbs.appendChild(delBtn);
     }
+    
+    // 2. دکمه افزودن آیتم (همیشه)
+    const addBtn = document.createElement('button');
+    addBtn.className = "card-control-btn btn-add-crumb";
+    addBtn.innerHTML = "➕";
+    addBtn.title = "افزودن آیتم جدید";
+    addBtn.style.cssText = `
+        background: #4CAF50;
+        color: white;
+        font-size: 12px;
+        margin-left: 8px;
+    `;
+    
+    addBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('کلیک روی افزودن آیتم', category, currentPath);
+        this.openAddModal(category, currentPath);
+    });
+    
+    breadcrumbs.appendChild(addBtn);
+    
+    // 3. دکمه تغییر حالت نمایش
+    const viewBtn = document.createElement('button');
+    viewBtn.className = "card-control-btn btn-view-crumb";
+    viewBtn.innerHTML = "👁️";
+    viewBtn.title = "تغییر حالت نمایش";
+    viewBtn.style.cssText = `
+        background: #2196F3;
+        color: white;
+        font-size: 12px;
+        margin-left: 8px;
+    `;
+    
+    viewBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('کلیک روی تغییر حالت نمایش');
+        
+        const layout = state.layoutMap[category];
+        if (layout) {
+            layout.view = layout.view === "grid" ? "list" : "grid";
+            StorageManager.set(CONFIG.STORAGE_KEYS.LAYOUT, state.layoutMap);
+            this.renderDashboard();
+        }
+    });
+    
+    breadcrumbs.appendChild(viewBtn);
+    
+    // 4. دکمه برگشت (اگر در پوشه‌ای هستیم)
+    if (currentPath && currentPath.length > 0) {
+        const backBtn = document.createElement('button');
+        backBtn.className = "card-control-btn btn-back-crumb";
+        backBtn.innerHTML = "↩️";
+        backBtn.title = "برگشت به سطح قبل";
+        backBtn.style.cssText = `
+            background: #FF9800;
+            color: white;
+            font-size: 12px;
+            margin-left: 8px;
+        `;
+        
+        backBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('کلیک روی برگشت');
+            
+            const newPath = currentPath.slice(0, -1);
+            this.navigateToPath(category, newPath);
+        });
+        
+        breadcrumbs.appendChild(backBtn);
+    }
+    
+    console.log('دکمه‌های کنترل اضافه شدند');
+}
 
     static openAddModal(category, currentPath) {
         const modal = document.getElementById('bookmark-modal');
