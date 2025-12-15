@@ -1055,26 +1055,29 @@ class EventManager {
         console.log('تنظیم رویدادها...');
         
         // دکمه حالت ویرایش
-        const editModeBtn = document.getElementById('edit-mode-btn');
-        if (editModeBtn) {
-            editModeBtn.addEventListener('click', () => {
-                state.isEditMode = !state.isEditMode;
-                const subControls = document.getElementById('sub-controls');
-                
-                editModeBtn.textContent = state.isEditMode ? '✅' : '✏️';
-                editModeBtn.title = state.isEditMode ? 'خروج از حالت ویرایش' : 'حالت ویرایش';
-                
-                if (state.isEditMode) {
-                    subControls?.classList.remove('hidden-controls');
-                    subControls?.classList.add('visible-controls');
-                } else {
-                    subControls?.classList.remove('visible-controls');
-                    subControls?.classList.add('hidden-controls');
-                }
-                
-                Renderer.renderDashboard();
-            });
-        }
+		const editModeBtn = document.getElementById('edit-mode-btn');
+		if (editModeBtn) {
+			editModeBtn.addEventListener('click', () => {
+				state.isEditMode = !state.isEditMode;
+				const subControls = document.getElementById('sub-controls');
+				
+				editModeBtn.textContent = state.isEditMode ? '✅' : '✏️';
+				editModeBtn.title = state.isEditMode ? 'خروج از حالت ویرایش' : 'حالت ویرایش';
+				
+				// این شرط رو اضافه کن:
+				if (subControls) {
+					if (state.isEditMode) {
+						subControls.classList.remove('hidden-controls');
+						subControls.classList.add('visible-controls');
+					} else {
+						subControls.classList.remove('visible-controls');
+						subControls.classList.add('hidden-controls');
+					}
+				}
+				
+				Renderer.renderDashboard();
+			});
+		}
         
         // دکمه افزودن کارت
         const addCardBtn = document.getElementById('add-card-btn');

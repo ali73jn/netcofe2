@@ -1,3 +1,7 @@
+/* ------------------------------------------------------------------ */
+/* تنظیمات پایه (Base Settings) */
+/* ------------------------------------------------------------------ */
+
 :root {
     --primary-color: #007bff;
     --secondary-color: #6c757d;
@@ -6,14 +10,15 @@
     --warning-color: #ffc107;
     --light-color: #f8f9fa;
     --dark-color: #343a40;
-    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-bg: rgba(255, 255, 255, 0.7);
     --text-color: #333;
     --border-color: rgba(0, 0, 0, 0.1);
     --shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease;
 }
 
 [data-theme="dark"] {
-    --card-bg: rgba(40, 40, 40, 0.85);
+    --card-bg: rgba(40, 40, 40, 0.7);
     --text-color: #f8f9fa;
     --border-color: rgba(255, 255, 255, 0.1);
     --shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
@@ -22,125 +27,341 @@
 }
 
 html, body {
-    margin: 0;
+    overflow-x: hidden;
+    margin: 0; 
     padding: 0;
     font-family: 'Tahoma', sans-serif;
     direction: rtl;
-    background-color: #f0f2f5;
-    color: var(--text-color);
+    background-color: white;
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
-    min-height: 100vh;
+    background-attachment: fixed;
+    color: var(--text-color);
+    transition: background-color 0.3s ease;
 }
 
-[data-theme="dark"] body {
-    background-color: #121212;
-}
-
-/* گرید کانتینر */
+/* شبکه گرید (Grid Container) - کوچک‌شده */
 #grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 20px;
-    max-width: 1400px;
-    margin: 0 auto;
+    grid-template-columns: repeat(auto-fill, minmax(5px, 1fr));
+    grid-auto-rows: 5px;
+    gap: 1px;
+    padding: 5px;
+    width: auto;
+    height: auto;
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 
-/* کارت‌ها */
+/* ------------------------------------------------------------------ */
+/* استایل کارت‌ها (Card) */
+/* ------------------------------------------------------------------ */
+
 .bookmark-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
+    background-color: var(--card-bg);
+    backdrop-filter: blur(20px);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
     box-shadow: var(--shadow);
+    border-radius: 8px;
+    padding: 0;
+    position: relative;
     overflow: hidden;
-    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    transition: var(--transition);
 }
 
 .bookmark-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.card-header {
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.05);
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-[data-theme="dark"] .card-header {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.card-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-.card-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-color);
-    opacity: 0.6;
-    transition: opacity 0.3s;
-}
-
-.card-btn:hover {
-    opacity: 1;
-}
-
-.card-content {
-    padding: 15px;
-}
-
-/* کاشی‌ها */
-.bookmark-tiles {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-}
-
-.tile {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    background: var(--light-color);
-    border-radius: 8px;
-    text-decoration: none;
-    color: var(--text-color);
-    transition: background 0.3s, transform 0.2s;
-    border: 1px solid var(--border-color);
-}
-
-.tile:hover {
-    background: rgba(0, 123, 255, 0.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
     transform: translateY(-2px);
 }
 
-.tile-icon {
+.dragging { 
+    opacity: 0.8; 
+    z-index: 100; 
+}
+
+/* -------------------- هدر کارت (Header) -------------------- */
+.card-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding: 2px 10px;
+    min-height: 25px;
+    cursor: default;
+    user-select: none;
+}
+
+.card-title {
+    flex-grow: 1;
+    text-align: right;
+    margin: 0 5px;
+    font-size: 1.1em;
+    color: var(--text-color);
+    font-weight: bold;
+    cursor: default;
+    padding: 2px 5px;
+    border-radius: 4px;
+    order: 1;
+}
+
+.editing-mode .card-title {
+    cursor: text;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px dashed #777;
+}
+
+[data-theme="dark"] .editing-mode .card-title {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+}
+
+/* دکمه‌های داخل هدر */
+.card-btn {
     width: 24px;
     height: 24px;
-    margin-left: 10px;
-    border-radius: 6px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.1em;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    background: var(--light-color);
+    color: var(--text-color);
+    order: 2;
+}
+
+.editing-mode .card-btn {
+    opacity: 0.6;
+    pointer-events: auto;
+}
+
+.editing-mode .card-btn:hover {
+    opacity: 1;
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-drag {
+    background: transparent;
+    color: var(--text-color);
+    cursor: grab;
+    font-size: 1.4em;
+}
+
+.dragging .btn-drag {
+    cursor: grabbing;
+}
+
+/* -------------------- محتوای کارت (Content) -------------------- */
+.card-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: calc(100% - 37px);
+    box-sizing: border-box;
+    padding: 5px;
+}
+
+/* کانتینر کاشی‌ها (Tiles Container) */
+.bookmark-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 5px;
+    padding: 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* حالت فشرده */
+.compact-mode .bookmark-tiles {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 3px;
+}
+
+/* -------------------- آیتم‌های لیست (Tile) -------------------- */
+.tile {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+    height: 30px;
+    width: 100%;
+    padding: 2px 3px;
+    background-color: var(--light-color);
+    position: relative;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.1s, box-shadow 0.1s, transform 0.1s;
+    overflow: hidden;
+    white-space: nowrap;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tile:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.tile-folder {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.tile-icon {
+    width: 25px !important;
+    height: 25px !important;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 8px;
 }
 
 .tile-name {
-    flex: 1;
-    font-size: 0.9rem;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    flex-grow: 1;
+    margin-inline-start: 3px;
+    margin-inline-end: 1px;
+    text-align: right;
+    font-size: 0.9em;
 }
 
-/* منوی کنترل */
+/* آیکون ویرایش */
+.tile .tile-edit-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 25px;
+    height: 25px;
+    background: rgba(30, 160, 160, 0.8);
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
+    flex-shrink: 0;
+    font-size: 1em;
+    color: #444;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.2s, background 0.2s;
+    z-index: 5;
+}
+
+.editing-mode .tile .tile-edit-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.tile:hover .tile-edit-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* -------------------- ریسایز هندل (Resize Handle) -------------------- */
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: 15px;
+    height: 15px;
+    background: rgba(40, 167, 69, 0.7);
+    border-radius: 0 5px 0 8px;
+    cursor: nesw-resize;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.editing-mode .resize-handle {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* -------------------- Breadcrumbs و دکمه‌های کنترل -------------------- */
+.card-breadcrumbs {
+    font-size: 1em;
+    color: var(--text-color);
+    padding: 4px 15px 6px;
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .card-breadcrumbs {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.crumb {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--primary-color);
+    flex-shrink: 0;
+    margin: 0 2px;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.crumb:hover {
+    background: rgba(0, 123, 255, 0.1);
+}
+
+/* دکمه‌های کنترل در Breadcrumbs */
+.card-control-btn {
+    margin-inline-start: 5px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: var(--light-color);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.9;
+    transition: opacity 0.1s, transform 0.1s;
+    color: var(--text-color);
+}
+
+.card-control-btn:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.btn-del-crumb {
+    color: var(--danger-color);
+    font-weight: bold;
+    font-size: 1em;
+}
+
+.btn-add-crumb {
+    color: var(--success-color);
+    font-weight: bold;
+    font-size: 1em;
+}
+
+/* ------------------------------------------------------------------ */
+/* منوی کنترل اصلی - اصلاح شده */
+/* ------------------------------------------------------------------ */
+
 #control-menu {
     position: fixed;
     bottom: 20px;
@@ -160,38 +381,61 @@ html, body {
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
+    margin-right: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s, background 0.3s;
 }
 
 .main-btn:hover {
     transform: scale(1.1);
+    background: #0056b3;
 }
 
 #sub-controls {
     display: flex;
     flex-direction: row-reverse;
+    flex-wrap: wrap;
+    align-items: center;
+    transition: all 0.3s ease;
     margin-left: 10px;
 }
 
+/* حالت مخفی برای sub-controls */
 .hidden-controls {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(20px);
     display: none;
 }
 
+/* حالت نمایش برای sub-controls */
 .visible-controls {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
     display: flex;
 }
 
 .sub-btn {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     background: var(--light-color);
     color: var(--text-color);
     border: none;
-    margin-left: 8px;
+    font-size: 1.2rem;
     cursor: pointer;
+    margin-right: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
     transition: all 0.3s;
 }
 
@@ -201,30 +445,35 @@ html, body {
     transform: scale(1.05);
 }
 
+/* ------------------------------------------------------------------ */
 /* نوار جستجو */
+/* ------------------------------------------------------------------ */
 .search-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    left: 20px;
+    top: 0;
+    left: 0;
+    right: 0;
     background: var(--card-bg);
     backdrop-filter: blur(20px);
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    z-index: 2000;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     display: flex;
-    gap: 10px;
+    z-index: 2000;
+    transition: transform 0.3s ease;
+}
+
+.search-container.hidden {
+    transform: translateY(-100%);
 }
 
 #bookmark-search {
     flex: 1;
     padding: 10px 15px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    font-size: 1em;
     background: var(--light-color);
     color: var(--text-color);
-    font-size: 1rem;
 }
 
 .close-search {
@@ -233,84 +482,291 @@ html, body {
     border: none;
     width: 40px;
     height: 40px;
-    border-radius: 8px;
+    border-radius: 50%;
+    margin-right: 10px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* آفلاین ایندیکیتور */
-.offline-indicator {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    background: var(--danger-color);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    z-index: 3000;
-    font-weight: bold;
-}
-
+/* ------------------------------------------------------------------ */
 /* Modal */
+/* ------------------------------------------------------------------ */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 4000;
+    z-index: 3000;
 }
 
 .modal-content {
     background: var(--card-bg);
-    padding: 30px;
-    border-radius: 16px;
+    padding: 25px;
+    border-radius: 12px;
     width: 90%;
-    max-width: 500px;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     max-height: 90vh;
     overflow-y: auto;
+    color: var(--text-color);
 }
 
-/* کلاس‌های کمکی */
-.hidden {
-    display: none !important;
+.modal-content h3 {
+    margin-top: 0;
+    color: var(--text-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
 }
 
-.empty-state, .error-state {
-    text-align: center;
-    padding: 40px 20px;
+.settings-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    border-right: 4px solid var(--primary-color);
+}
+
+[data-theme="dark"] .settings-section {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.settings-section h4 {
+    margin-top: 0;
+    color: var(--primary-color);
+}
+
+.modal-content label {
+    display: block;
+    margin-top: 15px;
+    color: var(--text-color);
+}
+
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--light-color);
+    color: var(--text-color);
+    font-family: 'Tahoma', sans-serif;
+}
+
+.modal-content textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-success,
+.btn-danger,
+.btn-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Tahoma', sans-serif;
+    font-weight: bold;
+    transition: var(--transition);
 }
 
 .btn-success {
     background: var(--success-color);
     color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    margin-top: 20px;
 }
 
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-success:hover { background: #218838; }
+.btn-danger:hover { background: #c82333; }
+.btn-secondary:hover { background: #5a6268; }
+
+/* ------------------------------------------------------------------ */
+/* Compact Vertical Grid View */
+/* ------------------------------------------------------------------ */
+.view-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)) !important;
+    gap: 8px !important;
+}
+
+.tile.tile-grid-mode {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    width: 100px !important;
+    height: 70px !important;
+    padding: 5px !important;
+    background: var(--light-color);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    position: relative;
+}
+
+.tile.tile-grid-mode:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.20);
+}
+
+.tile.tile-grid-mode .tile-icon {
+    width: 36px !important;
+    height: 36px !important;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+.tile.tile-grid-mode .tile-name {
+    margin-top: 3px !important;
+    text-align: center;
+    width: 100%;
+    font-size: 0.8em;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.tile.tile-grid-mode .tile-edit-btn {
+    top: 4px;
+    left: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/* اسپینر لودینگ - حذف شده */
+/* ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ */
+/* ایندیکیتور آفلاین */
+/* ------------------------------------------------------------------ */
+.offline-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: var(--danger-color);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    z-index: 3000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ------------------------------------------------------------------ */
+/* اصلاحات Scrollbar */
+/* ------------------------------------------------------------------ */
+.card-content::-webkit-scrollbar,
+.bookmark-tiles::-webkit-scrollbar {
+    display: none;
+    width: 0px;
+    height: 0px;
+}
+
+.card-content {
+    scrollbar-width: none;
+    scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+/* ------------------------------------------------------------------ */
+/* حالت تاریک */
+/* ------------------------------------------------------------------ */
+[data-theme="dark"] {
+    background-color: #121212;
+}
+
+[data-theme="dark"] .tile {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .tile-folder {
+    background-color: rgba(255, 193, 7, 0.15);
+}
+
+[data-theme="dark"] .main-btn {
+    background: #0056b3;
+}
+
+[data-theme="dark"] .main-btn:hover {
+    background: #004494;
+}
+
+[data-theme="dark"] .sub-btn {
+    background: #444;
+    color: #fff;
+}
+
+[data-theme="dark"] .sub-btn:hover {
+    background: #0056b3;
+    color: white;
+}
+
+/* ------------------------------------------------------------------ */
 /* ریسپانسیو */
+/* ------------------------------------------------------------------ */
 @media (max-width: 768px) {
     #grid-container {
-        grid-template-columns: 1fr;
-        padding: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(4px, 1fr));
+        padding: 3px;
+        gap: 0.5px;
+    }
+    
+    .bookmark-card {
+        min-width: 150px;
     }
     
     .bookmark-tiles {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     }
     
-    .search-container {
-        top: 10px;
-        right: 10px;
-        left: 10px;
+    .view-grid .bookmark-tiles {
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)) !important;
+    }
+    
+    .tile.tile-grid-mode {
+        width: 80px !important;
+        height: 60px !important;
+    }
+    
+    .modal-content {
+        width: 95%;
+        padding: 15px;
     }
     
     #control-menu {
@@ -322,10 +778,117 @@ html, body {
         width: 45px;
         height: 45px;
         font-size: 1.3rem;
+        margin-right: 8px;
+    }
+    
+    .sub-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+        margin-right: 6px;
+    }
+    
+    .search-container {
+        padding: 8px;
+    }
+    
+    #bookmark-search {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    #grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(3px, 1fr));
+    }
+    
+    .bookmark-tiles {
+        grid-template-columns: 1fr;
+    }
+    
+    .view-grid .bookmark-tiles {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .card-breadcrumbs {
+        flex-wrap: wrap;
+        font-size: 0.9em;
+    }
+    
+    .crumb {
+        margin: 2px;
+    }
+    
+    .main-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+        margin-right: 5px;
     }
     
     .sub-btn {
         width: 35px;
         height: 35px;
+        font-size: 1rem;
+        margin-right: 5px;
     }
+}
+
+/* کلاس‌های کمکی */
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+/* نمایش فیلتر شده */
+.tile.filtered-out {
+    display: none !important;
+}
+
+.tile.highlighted {
+    animation: highlight 1s ease;
+    box-shadow: 0 0 10px var(--primary-color);
+}
+
+@keyframes highlight {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* استایل‌های اضافی برای حالت ویرایش */
+.editing-mode .bookmark-card {
+    border: 2px dashed var(--primary-color);
+}
+
+.editing-mode .tile {
+    border: 1px dashed #666;
+}
+
+.editing-mode .tile:hover {
+    border-color: var(--primary-color);
+}
+
+/* استایل برای کارت‌های خالی */
+.empty-state, .error-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    margin: 20px;
+    box-shadow: var(--shadow);
+}
+
+.empty-state h3, .error-state h3 {
+    color: var(--text-color);
+    margin-bottom: 15px;
+}
+
+.empty-state p, .error-state p {
+    color: var(--secondary-color);
+    margin-bottom: 20px;
 }
