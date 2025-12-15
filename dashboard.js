@@ -14,6 +14,7 @@ const CONFIG = {
     GRID_GAP: 2,
     HORIZONTAL_PIXEL_OFFSET: 0,
     
+	
     // کلیدهای localStorage
     STORAGE_KEYS: {
         LAYOUT: 'netcofe_layout',
