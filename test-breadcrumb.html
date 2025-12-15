@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>تست Breadcrumb ساده</title>
+    <style>
+        body {
+            font-family: Tahoma;
+            padding: 20px;
+        }
+        .crumb {
+            background: none;
+            border: none;
+            color: blue;
+            cursor: pointer;
+            padding: 8px 12px;
+            margin: 0 5px;
+            font-size: 16px;
+            text-decoration: underline;
+        }
+        .crumb:hover {
+            background: #f0f0f0;
+        }
+        #log {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h2>تست Breadcrumb</h2>
+    <div id="breadcrumbs"></div>
+    
+    <div id="log"></div>
+    
+    <script>
+        // داده تست
+        const testData = [
+            {
+                id: 'cars',
+                category: 'خودرو',
+                title: 'خودرو',
+                children: [
+                    {
+                        id: 'folder1',
+                        title: 'پورشه',
+                        type: 'folder',
+                        children: [
+                            {
+                                id: 'sub1',
+                                title: '911 مدل',
+                                type: 'folder',
+                                children: [
+                                    { id: 'item1', title: 'فروش پورشه', url: '#' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 'folder2',
+                        title: 'بنز',
+                        type: 'folder',
+                        children: []
+                    }
+                ]
+            }
+        ];
+        
+        let currentPath = [];
+        let currentCategory = 'خودرو';
+        
+        function log(msg) {
+            document.getElementById('log').innerHTML += msg + '<br>';
+            console.log(msg);
+        }
+        
+        function renderBreadcrumbs() {
+            const container = document.getElementById('breadcrumbs');
+            container.innerHTML = '';
+            
+            // خانه
+            const homeBtn = document.createElement('button');
+            homeBtn.className = 'crumb';
+            homeBtn.textContent = 'خانه';
+            homeBtn.onclick = () => {
+                currentPath = [];
+                log('رفتن به خانه');
+                renderBreadcrumbs();
+            };
+            container.appendChild(homeBtn);
+            
+            // مسیر
+            if (currentPath.length > 0) {
+                let path = [];
+                
+                for (let i = 0; i < currentPath.length; i++) {
+                    const folderId = currentPath[i];
+                    
+                    // جداکننده
+                    const sep = document.createElement('span');
+                    sep.textContent = ' › ';
+                    sep.style.margin = '0 10px';
+                    container.appendChild(sep);
+                    
+                    // پیدا کردن نام پوشه
+                    let items = testData.filter(d => d.category === currentCategory);
+                    let folderName = 'پوشه';
+                    
+                    // دنبال پوشه برو
+                    for (let j = 0; j <= i; j++) {
+                        const id = currentPath[j];
+                        const folder = items.find(item => item.id === id);
+                        if (folder) {
+                            folderName = folder.title;
+                            if (folder.children) items = folder.children;
+                        }
+                    }
+                    
+                    // دکمه
+                    const btn = document.createElement('button');
+                    btn.className = 'crumb';
+                    btn.textContent = folderName;
+                    
+                    const pathToHere = currentPath.slice(0, i + 1);
+                    btn.onclick = () => {
+                        currentPath = pathToHere;
+                        log(`رفتن به: ${folderName} (${pathToHere})`);
+                        renderBreadcrumbs();
+                    };
+                    
+                    container.appendChild(btn);
+                }
+            }
+        }
+        
+        // تست کلیک روی پوشه
+        function testFolderClick(folderId, folderTitle) {
+            currentPath.push(folderId);
+            log(`کلیک روی پوشه: ${folderTitle}`);
+            renderBreadcrumbs();
+        }
+        
+        // شروع
+        log('برنامه شروع شد');
+        renderBreadcrumbs();
+        
+        // دکمه‌های تست
+        const testDiv = document.createElement('div');
+        testDiv.innerHTML = `
+            <h3>تست کلیک روی پوشه‌ها:</h3>
+            <button onclick="testFolderClick('folder1', 'پورشه')">کلیک روی پورشه</button>
+            <button onclick="testFolderClick('sub1', '911 مدل')">کلیک روی 911 مدل</button>
+        `;
+        document.body.appendChild(testDiv);
+    </script>
+</body>
+</html>

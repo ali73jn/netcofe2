@@ -834,79 +834,137 @@ static async renderCardContent(cardEl, items, viewMode) {
     if (!tilesContainer) return;
     
     tilesContainer.innerHTML = '';
-    tilesContainer.classList.toggle("view-grid", viewMode === "grid");
-    tilesContainer.classList.toggle("view-list", viewMode === "list");
     
-    // گرفتن آدرس فعلی برای این کارت
+    // گرفتن آدرس فعلی
     const category = cardEl.dataset.category;
     const currentPath = state.currentPaths[category] || [];
     
-    console.log(`رندر کارت ${category} - مسیر:`, currentPath);
+    console.log('=== رندر کارت ===');
+    console.log('دسته‌بندی:', category);
+    console.log('مسیر فعلی:', currentPath);
+    console.log('تعداد آیتم‌ها:', items.length);
     
-    // رندر Breadcrumb (همه آیتم‌ها رو بفرست)
+    // رندر Breadcrumb
     this.renderBreadcrumbs(breadcrumbs, category, currentPath, items);
     
-    // دکمه‌های کنترل (در حالت ویرایش)
-    if (state.isEditMode && breadcrumbs) {
-        this.addControlButtons(breadcrumbs, category, currentPath);
-    }
-    
-    // پیدا کردن آیتم‌های سطح فعلی
+    // رندر آیتم‌های سطح فعلی
     const currentLevelItems = this.getCurrentLevelItems(category, items, currentPath);
     
-    console.log(`آیتم‌های سطح فعلی (${currentLevelItems.length} آیتم):`, currentLevelItems);
-    
-    // رندر آیتم‌ها
     for (const item of currentLevelItems) {
         const tile = await this.createTile(item, viewMode, category, currentPath);
-        if (tile) {
-            tilesContainer.appendChild(tile);
-        }
+        if (tile) tilesContainer.appendChild(tile);
     }
 }
 
 
+static getCurrentLevelItems(category, items, currentPath) {
+    console.log('دریافت آیتم‌های سطح:', category, currentPath);
+    
+    // اگر مسیر نداریم، همه آیتم‌های این دسته رو برگردون
+    if (!currentPath || currentPath.length === 0) {
+        const result = items.filter(item => item.category === category);
+        console.log('آیتم‌های ریشه:', result.length);
+        return result;
+    }
+    
+    // دنبال پوشه برو
+    let currentItems = items.filter(item => item.category === category);
+    
+    for (const folderId of currentPath) {
+        console.log('جستجوی پوشه:', folderId, 'در', currentItems.length, 'آیتم');
+        
+        const folder = currentItems.find(item => item.id === folderId);
+        
+        if (!folder) {
+            console.error('پوشه پیدا نشد!');
+            return items.filter(item => item.category === category);
+        }
+        
+        if (folder.children) {
+            currentItems = folder.children;
+        } else {
+            console.error('پوشه children ندارد!');
+            return items.filter(item => item.category === category);
+        }
+    }
+    
+    console.log('آیتم‌های سطح فعلی:', currentItems.length);
+    return currentItems;
+}
+
+
 // ==================== تابع renderBreadcrumbs اصلاح شده ====================
+// ==================== تابع renderBreadcrumbs کاملاً ساده شده ====================
 static renderBreadcrumbs(breadcrumbsEl, category, currentPath, allItems) {
     if (!breadcrumbsEl) return;
     
     breadcrumbsEl.innerHTML = '';
     
-    // همیشه "خانه" اول باشه
-    const homeCrumb = document.createElement('span');
+    // دکمه خانه
+    const homeCrumb = document.createElement('button');
     homeCrumb.className = 'crumb';
     homeCrumb.textContent = 'خانه';
-    homeCrumb.addEventListener('click', () => {
+    homeCrumb.style.cssText = `
+        background: none;
+        border: none;
+        color: var(--primary-color);
+        cursor: pointer;
+        padding: 4px 8px;
+        margin: 0 2px;
+        font-family: inherit;
+        font-size: inherit;
+    `;
+    
+    homeCrumb.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('کلیک روی خانه');
         this.navigateToPath(category, []);
     });
+    
     breadcrumbsEl.appendChild(homeCrumb);
     
-    // اگر مسیری وجود داره، آیتم‌های مسیر رو اضافه کن
+    // اگر مسیر داریم
     if (currentPath && currentPath.length > 0) {
-        let accumulatedPath = [];
+        console.log('مسیر فعلی:', currentPath);
+        
+        // ایجاد مسیر مرحله‌ای
+        let tempPath = [];
         
         for (let i = 0; i < currentPath.length; i++) {
             const folderId = currentPath[i];
             
             // جداکننده
             const separator = document.createElement('span');
-            separator.className = 'crumb-separator';
             separator.textContent = ' › ';
+            separator.style.cssText = 'margin: 0 5px; color: #666;';
             breadcrumbsEl.appendChild(separator);
             
             // پیدا کردن نام پوشه
-            const folderName = this.getFolderNameById(category, folderId, currentPath.slice(0, i), allItems);
+            const folderName = this.findFolderName(allItems, category, folderId, currentPath.slice(0, i));
             
-            const crumb = document.createElement('span');
+            // دکمه مسیر
+            const crumb = document.createElement('button');
             crumb.className = 'crumb';
             crumb.textContent = folderName || `پوشه ${i + 1}`;
+            crumb.style.cssText = `
+                background: none;
+                border: none;
+                color: var(--primary-color);
+                cursor: pointer;
+                padding: 4px 8px;
+                margin: 0 2px;
+                font-family: inherit;
+                font-size: inherit;
+                text-decoration: underline;
+            `;
             
-            // با کلیک به این سطح از مسیر برگرد
-            accumulatedPath = currentPath.slice(0, i + 1);
+            // ذخیره مسیر تا این نقطه
+            const pathToHere = currentPath.slice(0, i + 1);
+            
             crumb.addEventListener('click', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
-                this.navigateToPath(category, accumulatedPath);
+                console.log('کلیک روی Breadcrumb:', pathToHere);
+                this.navigateToPath(category, pathToHere);
             });
             
             breadcrumbsEl.appendChild(crumb);
@@ -914,63 +972,45 @@ static renderBreadcrumbs(breadcrumbsEl, category, currentPath, allItems) {
     }
 }
 
-// ==================== تابع getFolderNameById اصلاح شده ====================
-static getFolderNameById(category, folderId, path, allItems) {
-    // ابتدا آیتم‌های این دسته‌بندی رو پیدا کن
-    let items = allItems.filter(item => item.category === category);
-    
-    if (path && path.length > 0) {
-        // در مسیر حرکت کن تا به پوشه برسی
-        for (const id of path) {
-            const folder = items.find(item => item.id === id && (item.type === 'folder' || item.children));
+// ==================== تابع ساده برای پیدا کردن نام پوشه ====================
+static findFolderName(allItems, category, folderId, pathSoFar) {
+    try {
+        // ابتدا آیتم‌های این دسته رو پیدا کن
+        let items = allItems.filter(item => item.category === category);
+        
+        // در مسیر حرکت کن
+        for (const id of pathSoFar) {
+            const folder = items.find(item => item.id === id);
             if (folder && folder.children) {
                 items = folder.children;
-            } else {
-                break;
             }
         }
-    }
-    
-    // حالا پوشه مورد نظر رو پیدا کن
-    const folder = items.find(item => item.id === folderId);
-    return folder ? folder.title : '';
-}
-
-// ==================== تابع getCurrentLevelItems اصلاح شده ====================
-static getCurrentLevelItems(category, items, currentPath) {
-    // اگر در ریشه هستیم
-    if (!currentPath || currentPath.length === 0) {
-        return items;
-    }
-    
-    // دنبال پوشه‌ها در مسیر برو
-    let currentItems = [...items]; // کپی از آیتم‌ها
-    
-    for (const folderId of currentPath) {
-        const folder = currentItems.find(item => 
-            item.id === folderId && (item.type === 'folder' || item.children)
-        );
         
-        if (folder && folder.children) {
-            currentItems = folder.children;
-        } else {
-            // اگر پوشه پیدا نشد، به ریشه برگرد
-            console.warn(`پوشه با ID ${folderId} پیدا نشد!`);
-            this.navigateToPath(category, []);
-            return items;
-        }
+        // پوشه مورد نظر رو پیدا کن
+        const folder = items.find(item => item.id === folderId);
+        return folder ? folder.title : 'پوشه';
+    } catch (error) {
+        console.error('خطا در پیدا کردن نام پوشه:', error);
+        return 'پوشه';
     }
-    
-    return currentItems;
 }
 
-// ==================== تابع navigateToPath اصلاح شده ====================
+// ==================== تابع navigateToPath با لاگ بیشتر ====================
 static navigateToPath(category, newPath) {
-    console.log(`ناوبری: ${category} ->`, newPath);
+    console.log('========== ناوبری ==========');
+    console.log('دسته‌بندی:', category);
+    console.log('مسیر جدید:', newPath);
+    console.log('مسیر قبلی:', state.currentPaths[category]);
+    
     state.currentPaths[category] = newPath;
     StorageManager.set(CONFIG.STORAGE_KEYS.CURRENT_PATHS, state.currentPaths);
+    
+    console.log('ذخیره شد:', StorageManager.get(CONFIG.STORAGE_KEYS.CURRENT_PATHS));
+    
+    // رندر مجدد
     this.renderDashboard();
 }
+
 
 
 
