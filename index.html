@@ -3,109 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="همیار کافینت - مدیریت پیشرفته بوکمارک‌ها">
-    <title>همیار کافینت - NetCofe Dashboard</title>
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#007bff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="icons/default_icon.png">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-    
-    <!-- Manifest -->
-    <link rel="manifest" href="manifest.webmanifest">
-    
-    <!-- Styles -->
+    <title>همیار کافینت</title>
     <link rel="stylesheet" href="dashboard.css">
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tahoma:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tahoma:wght@400;700&display=swap">
 </head>
 <body>
-    
-    <!-- آفلاین ایندیکیتور -->
-    <div id="offline-indicator" class="offline-indicator hidden">
-        🔌 حالت آفلاین
-    </div>
-    
-    <!-- نوار جستجو -->
-    <div id="search-container" class="search-container hidden">
-        <input type="search" id="bookmark-search" placeholder="جستجو در بوکمارک‌ها..." autocomplete="off">
-        <button id="close-search" class="close-search">✕</button>
-    </div>
-    
-    <!-- کانتینر اصلی -->
+    <div id="offline-indicator" class="offline-indicator hidden">🔌 حالت آفلاین</div>
     <main id="grid-container">
         <div class="loading-spinner">
             <div class="spinner"></div>
-            <p>در حال بارگذاری...</p>
+            <p>در حال راه‌اندازی...</p>
         </div>
     </main>
 
-    <!-- منوی کنترل -->
     <div id="control-menu">
         <div id="sub-controls" class="hidden-controls">
-            
-            <button id="add-card-btn" class="sub-btn" title="افزودن کارت جدید">➕</button>
-            <button id="refresh-bookmarks-btn" class="sub-btn" title="به‌روزرسانی بوکمارک‌ها">🔄</button>
-            
-            <button id="set-background-btn" class="sub-btn" title="انتخاب پس زمینه">🖼️</button>
-            <button id="toggle-theme-btn" class="sub-btn" title="تغییر حالت تاریک/روشن">🌓</button>
-            
-            <button id="export-bookmarks-btn" class="sub-btn" title="خروجی بوکمارک‌ها">🔖📤</button>
-            <button id="import-bookmarks-btn" class="sub-btn" title="ورود بوکمارک‌ها">🔖📥</button>
-            
-            <button id="export-settings-btn" class="sub-btn" title="خروجی تنظیمات">⚙️📤</button>
-            <button id="import-settings-btn" class="sub-btn" title="ورود تنظیمات">⚙️📥</button>
-            
-            <button id="search-btn" class="sub-btn" title="جستجو">🔍</button>
+            <button id="add-card-btn" class="sub-btn">➕</button>
+            <button id="refresh-bookmarks-btn" class="sub-btn">🔄</button>
+            <button id="set-background-btn" class="sub-btn">🖼️</button>
+            <button id="toggle-theme-btn" class="sub-btn">🌓</button>
+            <button id="export-bookmarks-btn" class="sub-btn">🔖📤</button>
+            <button id="import-bookmarks-btn" class="sub-btn">🔖📥</button>
+            <button id="export-settings-btn" class="sub-btn">⚙️📤</button>
+            <button id="import-settings-btn" class="sub-btn">⚙️📥</button>
+            <button id="search-btn" class="sub-btn">🔍</button>
         </div>
-        
-        <button id="goto-bookmarks-btn" class="main-btn" title="مدیریت بوکمارک‌ها">🔖</button>
-        <button id="edit-mode-btn" class="main-btn" title="حالت ویرایش">✏️</button>
+        <button id="edit-mode-btn" class="main-btn">✏️</button>
     </div>
-    
-    <!-- Inputهای فایل مخفی -->
-    <input type="file" id="import-settings-file" accept=".json" style="display: none;">
-    <input type="file" id="import-bookmarks-file" accept=".json" style="display: none;">
-    <input type="file" id="background-file-input" accept="image/*" style="display: none;">
 
-    <!-- Modal مدیریت بوکمارک -->
+    <input type="file" id="import-settings-file" accept=".json" style="display:none;">
+    <input type="file" id="import-bookmarks-file" accept=".json" style="display:none;">
+    <input type="file" id="background-file-input" accept="image/*" style="display:none;">
+
     <div id="bookmark-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>مدیریت محتوا</h3>
-            <input type="hidden" id="current-card-id">
-            <input type="hidden" id="editing-item-id">
-
             <form id="bookmark-form">
                 <label for="bookmark-type">نوع:</label>
-                <select id="bookmark-type">
-                    <option value="bookmark">بوکمارک</option>
-                    <option value="folder">پوشه</option>
-                </select>
-                
-                <label for="bookmark-name">نام:</label>
-                <input type="text" id="bookmark-name" required>
-
-                <div id="url-field-group">
-                    <label for="bookmark-url">آدرس (URL):</label>
-                    <input type="url" id="bookmark-url">
-                </div>
-                
-                <label for="bookmark-category">دسته‌بندی (اختیاری):</label>
-                <input type="text" id="bookmark-category" placeholder="مثال: شبکه‌های اجتماعی">
-                
-                <label for="bookmark-tags">برچسب‌ها (با کاما جدا شود):</label>
-                <input type="text" id="bookmark-tags" placeholder="مثال: شبکه اجتماعی, ایرانی">
-                
-                <label for="bookmark-description">توضیحات (اختیاری):</label>
-                <textarea id="bookmark-description" rows="3"></textarea>
-                
+                <select id="bookmark-type"><option value="bookmark">بوکمارک</option><option value="folder">پوشه</option></select>
+                <label for="bookmark-name">نام:</label><input type="text" id="bookmark-name" required>
+                <div id="url-field-group"><label for="bookmark-url">آدرس:</label><input type="url" id="bookmark-url"></div>
+                <label for="bookmark-description">توضیحات:</label><textarea id="bookmark-description" rows="3"></textarea>
                 <div class="modal-buttons">
                     <button type="button" id="delete-btn" class="btn-danger hidden">حذف</button>
                     <button type="button" id="cancel-btn" class="btn-secondary">لغو</button>
@@ -114,70 +52,21 @@
             </form>
         </div>
     </div>
-    
-    <!-- Modal تنظیمات -->
-    <div id="settings-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>تنظیمات پیشرفته</h3>
-            <div class="settings-section">
-                <h4>ظاهر</h4>
-                <label>
-                    <input type="checkbox" id="auto-dark-mode">
-                    حالت تاریک خودکار
-                </label>
-                <label>
-                    <input type="checkbox" id="compact-view">
-                    نمایش فشرده
-                </label>
-            </div>
-            
-            <div class="settings-section">
-                <h4>همگام‌سازی</h4>
-                <label>
-                    آدرس JSON بوکمارک‌ها:
-                    <input type="url" id="bookmarks-json-url" placeholder="https://raw.githubusercontent.com/...">
-                </label>
-                <button id="reset-bookmarks-url" class="btn-secondary">بازنشانی به پیش‌فرض</button>
-            </div>
-            
-            <div class="settings-section">
-                <h4>داده‌ها</h4>
-                <button id="clear-cache-btn" class="btn-danger">پاک کردن کش</button>
-                <button id="reset-all-btn" class="btn-danger">بازنشانی همه تنظیمات</button>
-            </div>
-            
-            <div class="modal-buttons">
-                <button type="button" id="close-settings-btn" class="btn-secondary">بستن</button>
-                <button type="button" id="save-settings-btn" class="btn-success">ذخیره تنظیمات</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- اسکریپت‌ها -->
-    <script src="dashboard.js"></script>
-    
-    <!-- ثبت Service Worker -->
+
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('Service Worker ثبت شد:', registration);
-                    })
-                    .catch(error => {
-                        console.log('خطا در ثبت Service Worker:', error);
-                    });
-            });
-        }
-        
-        // تشخیص حالت آفلاین
-        window.addEventListener('online', () => {
-            document.getElementById('offline-indicator').classList.add('hidden');
-        });
-        
-        window.addEventListener('offline', () => {
-            document.getElementById('offline-indicator').classList.remove('hidden');
-        });
+        // راه‌انداز ساده و مستقیم
+        console.log('راه‌انداز شروع شد.');
+        // بعد از 2 ثانیه، فایل اصلی رو بارگذاری کن
+        setTimeout(() => {
+            const script = document.createElement('script');
+            script.src = 'dashboard.js';
+            script.onload = () => console.log('✅ dashboard.js بارگذاری شد.');
+            script.onerror = (e) => {
+                console.error('❌ خطا در بارگذاری dashboard.js:', e);
+                document.getElementById('grid-container').innerHTML = '<p style="color:red; padding:50px; text-align:center;">خطا در بارگذاری فایل اصلی.</p>';
+            };
+            document.body.appendChild(script);
+        }, 2000);
     </script>
 </body>
 </html>
