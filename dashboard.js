@@ -43,6 +43,9 @@ let state = {
     currentModal: null
 };
 
+// برای دیباگ - نمایش لاگ‌ها در کنسول
+console.log('state.currentPaths:', state.currentPaths);
+
 // ==================== مدیریت ذخیره‌سازی ====================
 class StorageManager {
     static get(key) {
@@ -824,128 +827,152 @@ class Renderer {
         container.appendChild(card);
     }
 
-    static async renderCardContent(cardEl, items, viewMode) {
-        const tilesContainer = cardEl.querySelector('.bookmark-tiles');
-        const breadcrumbs = cardEl.querySelector('.card-breadcrumbs');
-        
-        if (!tilesContainer) return;
-        
-        tilesContainer.innerHTML = '';
-        tilesContainer.classList.toggle("view-grid", viewMode === "grid");
-        tilesContainer.classList.toggle("view-list", viewMode === "list");
-        
-        // گرفتن آدرس فعلی برای این کارت
-        const category = cardEl.dataset.category;
-        const currentPath = state.currentPaths[category] || [];
-        
-        // رندر Breadcrumb
-        this.renderBreadcrumbs(breadcrumbs, category, currentPath, items);
-        
-        // دکمه‌های کنترل (در حالت ویرایش)
-        if (state.isEditMode && breadcrumbs) {
-            this.addControlButtons(breadcrumbs, category, currentPath);
-        }
-        
-        // پیدا کردن آیتم‌های سطح فعلی
-        const currentLevelItems = this.getCurrentLevelItems(category, items, currentPath);
-        
-        // رندر آیتم‌ها
-        for (const item of currentLevelItems) {
-            const tile = await this.createTile(item, viewMode, category, currentPath);
-            if (tile) {
-                tilesContainer.appendChild(tile);
-            }
+static async renderCardContent(cardEl, items, viewMode) {
+    const tilesContainer = cardEl.querySelector('.bookmark-tiles');
+    const breadcrumbs = cardEl.querySelector('.card-breadcrumbs');
+    
+    if (!tilesContainer) return;
+    
+    tilesContainer.innerHTML = '';
+    tilesContainer.classList.toggle("view-grid", viewMode === "grid");
+    tilesContainer.classList.toggle("view-list", viewMode === "list");
+    
+    // گرفتن آدرس فعلی برای این کارت
+    const category = cardEl.dataset.category;
+    const currentPath = state.currentPaths[category] || [];
+    
+    console.log(`رندر کارت ${category} - مسیر:`, currentPath);
+    
+    // رندر Breadcrumb (همه آیتم‌ها رو بفرست)
+    this.renderBreadcrumbs(breadcrumbs, category, currentPath, items);
+    
+    // دکمه‌های کنترل (در حالت ویرایش)
+    if (state.isEditMode && breadcrumbs) {
+        this.addControlButtons(breadcrumbs, category, currentPath);
+    }
+    
+    // پیدا کردن آیتم‌های سطح فعلی
+    const currentLevelItems = this.getCurrentLevelItems(category, items, currentPath);
+    
+    console.log(`آیتم‌های سطح فعلی (${currentLevelItems.length} آیتم):`, currentLevelItems);
+    
+    // رندر آیتم‌ها
+    for (const item of currentLevelItems) {
+        const tile = await this.createTile(item, viewMode, category, currentPath);
+        if (tile) {
+            tilesContainer.appendChild(tile);
         }
     }
+}
 
-    static renderBreadcrumbs(breadcrumbsEl, category, currentPath, allItems) {
-        if (!breadcrumbsEl) return;
+
+// ==================== تابع renderBreadcrumbs اصلاح شده ====================
+static renderBreadcrumbs(breadcrumbsEl, category, currentPath, allItems) {
+    if (!breadcrumbsEl) return;
+    
+    breadcrumbsEl.innerHTML = '';
+    
+    // همیشه "خانه" اول باشه
+    const homeCrumb = document.createElement('span');
+    homeCrumb.className = 'crumb';
+    homeCrumb.textContent = 'خانه';
+    homeCrumb.addEventListener('click', () => {
+        this.navigateToPath(category, []);
+    });
+    breadcrumbsEl.appendChild(homeCrumb);
+    
+    // اگر مسیری وجود داره، آیتم‌های مسیر رو اضافه کن
+    if (currentPath && currentPath.length > 0) {
+        let accumulatedPath = [];
         
-        breadcrumbsEl.innerHTML = '';
-        
-        // همیشه "خانه" اول باشه
-        const homeCrumb = document.createElement('span');
-        homeCrumb.className = 'crumb';
-        homeCrumb.textContent = 'خانه';
-        homeCrumb.addEventListener('click', () => {
-            this.navigateToPath(category, []);
-        });
-        breadcrumbsEl.appendChild(homeCrumb);
-        
-        // اگر مسیری وجود داره، آیتم‌های مسیر رو اضافه کن
-        if (currentPath && currentPath.length > 0) {
-            let accumulatedPath = [];
+        for (let i = 0; i < currentPath.length; i++) {
+            const folderId = currentPath[i];
             
-            for (let i = 0; i < currentPath.length; i++) {
-                const folderId = currentPath[i];
-                
-                // جداکننده
-                const separator = document.createElement('span');
-                separator.className = 'crumb-separator';
-                separator.textContent = ' › ';
-                breadcrumbsEl.appendChild(separator);
-                
-                // پیدا کردن نام پوشه
-                const folderName = this.getFolderNameById(category, folderId, currentPath.slice(0, i), allItems);
-                
-                const crumb = document.createElement('span');
-                crumb.className = 'crumb';
-                crumb.textContent = folderName || `پوشه ${i + 1}`;
-                
-                // با کلیک به این سطح از مسیر برگرد
-                accumulatedPath = currentPath.slice(0, i + 1);
-                crumb.addEventListener('click', () => {
-                    this.navigateToPath(category, accumulatedPath);
-                });
-                
-                breadcrumbsEl.appendChild(crumb);
-            }
+            // جداکننده
+            const separator = document.createElement('span');
+            separator.className = 'crumb-separator';
+            separator.textContent = ' › ';
+            breadcrumbsEl.appendChild(separator);
+            
+            // پیدا کردن نام پوشه
+            const folderName = this.getFolderNameById(category, folderId, currentPath.slice(0, i), allItems);
+            
+            const crumb = document.createElement('span');
+            crumb.className = 'crumb';
+            crumb.textContent = folderName || `پوشه ${i + 1}`;
+            
+            // با کلیک به این سطح از مسیر برگرد
+            accumulatedPath = currentPath.slice(0, i + 1);
+            crumb.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.navigateToPath(category, accumulatedPath);
+            });
+            
+            breadcrumbsEl.appendChild(crumb);
         }
     }
+}
 
-    static getFolderNameById(category, folderId, path, allItems) {
-        let currentItems = allItems.filter(item => item.category === category);
-        
-        // دنبال پوشه در مسیر بگرد
+// ==================== تابع getFolderNameById اصلاح شده ====================
+static getFolderNameById(category, folderId, path, allItems) {
+    // ابتدا آیتم‌های این دسته‌بندی رو پیدا کن
+    let items = allItems.filter(item => item.category === category);
+    
+    if (path && path.length > 0) {
+        // در مسیر حرکت کن تا به پوشه برسی
         for (const id of path) {
-            const folder = currentItems.find(item => item.id === id && item.type === 'folder');
+            const folder = items.find(item => item.id === id && (item.type === 'folder' || item.children));
             if (folder && folder.children) {
-                currentItems = folder.children;
-            }
-        }
-        
-        const folder = currentItems.find(item => item.id === folderId);
-        return folder ? folder.title : '';
-    }
-
-    static getCurrentLevelItems(category, allItems, currentPath) {
-        // اگر در ریشه هستیم
-        if (!currentPath || currentPath.length === 0) {
-            return allItems.filter(item => item.category === category);
-        }
-        
-        // دنبال پوشه‌ها در مسیر برو
-        let currentItems = allItems.filter(item => item.category === category);
-        
-        for (const folderId of currentPath) {
-            const folder = currentItems.find(item => item.id === folderId && item.type === 'folder');
-            if (folder && folder.children) {
-                currentItems = folder.children;
+                items = folder.children;
             } else {
-                // اگر پوشه پیدا نشد، به ریشه برگرد
-                this.navigateToPath(category, []);
-                return allItems.filter(item => item.category === category);
+                break;
             }
         }
-        
-        return currentItems;
     }
+    
+    // حالا پوشه مورد نظر رو پیدا کن
+    const folder = items.find(item => item.id === folderId);
+    return folder ? folder.title : '';
+}
 
-    static navigateToPath(category, newPath) {
-        state.currentPaths[category] = newPath;
-        StorageManager.set(CONFIG.STORAGE_KEYS.CURRENT_PATHS, state.currentPaths);
-        this.renderDashboard();
+// ==================== تابع getCurrentLevelItems اصلاح شده ====================
+static getCurrentLevelItems(category, items, currentPath) {
+    // اگر در ریشه هستیم
+    if (!currentPath || currentPath.length === 0) {
+        return items;
     }
+    
+    // دنبال پوشه‌ها در مسیر برو
+    let currentItems = [...items]; // کپی از آیتم‌ها
+    
+    for (const folderId of currentPath) {
+        const folder = currentItems.find(item => 
+            item.id === folderId && (item.type === 'folder' || item.children)
+        );
+        
+        if (folder && folder.children) {
+            currentItems = folder.children;
+        } else {
+            // اگر پوشه پیدا نشد، به ریشه برگرد
+            console.warn(`پوشه با ID ${folderId} پیدا نشد!`);
+            this.navigateToPath(category, []);
+            return items;
+        }
+    }
+    
+    return currentItems;
+}
+
+// ==================== تابع navigateToPath اصلاح شده ====================
+static navigateToPath(category, newPath) {
+    console.log(`ناوبری: ${category} ->`, newPath);
+    state.currentPaths[category] = newPath;
+    StorageManager.set(CONFIG.STORAGE_KEYS.CURRENT_PATHS, state.currentPaths);
+    this.renderDashboard();
+}
+
+
 
     static async createTile(item, viewMode, category, currentPath) {
         try {
