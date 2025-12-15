@@ -22,7 +22,8 @@ const CONFIG = {
         THEME: 'netcofe_theme',
         USER_BOOKMARKS: 'netcofe_user_bookmarks',
         CUSTOM_URLS: 'netcofe_custom_urls',
-        FAVICON_CACHE: 'netcofe_favicon_cache_v3'
+        FAVICON_CACHE: 'netcofe_favicon_cache_v3',
+        CURRENT_PATHS: 'netcofe_current_paths'
     }
 };
 
@@ -31,7 +32,7 @@ let state = {
     isEditMode: false,
     isDarkMode: false,
     isCompactMode: false,
-    currentPaths: {},
+    currentPaths: {}, // ذخیره مسیر فعلی برای هر دسته‌بندی
     dragInfo: null,
     resizeInfo: null,
     layoutMap: {},
@@ -91,6 +92,9 @@ class BookmarkManager {
             // اولویت‌ها: 1. بوکمارک‌های کاربر 2. بوکمارک‌های مرکزی
             const userBookmarks = StorageManager.get(CONFIG.STORAGE_KEYS.USER_BOOKMARKS) || [];
             state.userBookmarks = userBookmarks;
+            
+            // بارگذاری currentPaths از ذخیره‌سازی
+            state.currentPaths = StorageManager.get(CONFIG.STORAGE_KEYS.CURRENT_PATHS) || {};
             
             // بارگذاری بوکمارک‌های مرکزی
             const customUrls = StorageManager.get(CONFIG.STORAGE_KEYS.CUSTOM_URLS) || {};
@@ -153,14 +157,6 @@ class BookmarkManager {
                 category: 'توسعه',
                 description: 'پلتفرم توسعه نرم‌افزار',
                 tags: ['کد', 'برنامه‌نویسی']
-            },
-            {
-                id: 'folder-example',
-                title: 'پوشه نمونه',
-                type: 'folder',
-                category: 'سایر',
-                description: 'یک پوشه نمونه',
-                children: []
             }
         ];
     }
@@ -173,7 +169,13 @@ class BookmarkManager {
             dateAdded: new Date().toISOString()
         };
         
-        state.userBookmarks.push(newBookmark);
+        // اگر parentPath وجود دارد، در پوشه مربوطه اضافه کن
+        if (bookmark.parentPath && bookmark.parentPath.length > 0) {
+            this.addBookmarkToPath(newBookmark, bookmark.parentPath, bookmark.category);
+        } else {
+            state.userBookmarks.push(newBookmark);
+        }
+        
         StorageManager.set(CONFIG.STORAGE_KEYS.USER_BOOKMARKS, state.userBookmarks);
         
         // بازسازی لیست ترکیبی
@@ -183,6 +185,43 @@ class BookmarkManager {
         );
         
         return newBookmark;
+    }
+
+    static addBookmarkToPath(bookmark, path, category) {
+        let currentItems = state.userBookmarks.filter(b => b.category === category);
+        
+        if (currentItems.length === 0) {
+            // اگر هنوز برای این دسته‌بندی آیتمی نداریم، اضافه کن
+            state.userBookmarks.push(bookmark);
+            return;
+        }
+        
+        // پیدا کردن آیتم‌های این دسته‌بندی
+        let targetItems = currentItems;
+        
+        // دنبال پوشه مورد نظر در مسیر بگرد
+        for (let i = 0; i < path.length; i++) {
+            const folderId = path[i];
+            const folder = targetItems.find(item => item.id === folderId && item.type === 'folder');
+            
+            if (!folder) {
+                // پوشه پیدا نشد، در ریشه اضافه کن
+                state.userBookmarks.push(bookmark);
+                return;
+            }
+            
+            // اگر آخرین پوشه در مسیر است
+            if (i === path.length - 1) {
+                // به پوشه اضافه کن
+                if (!folder.children) folder.children = [];
+                folder.children.push(bookmark);
+                break;
+            } else {
+                // به پوشه بعدی برو
+                if (!folder.children) folder.children = [];
+                targetItems = folder.children;
+            }
+        }
     }
 
     static updateUserBookmark(id, updates) {
@@ -373,423 +412,6 @@ class BackgroundManager {
     static resetBackground() {
         StorageManager.remove(CONFIG.STORAGE_KEYS.BACKGROUND);
         document.body.style.backgroundImage = `url(${CONFIG.DEFAULT_BG_IMAGE_PATH})`;
-    }
-}
-
-// ==================== رندرینگ و DOM ====================
-class Renderer {
-    static async renderDashboard() {
-        const container = document.getElementById('grid-container');
-        if (!container) return;
-        
-        container.innerHTML = '';
-        document.body.classList.toggle('editing-mode', state.isEditMode);
-        document.body.classList.toggle('compact-mode', state.isCompactMode);
-        
-        console.log('رندر کردن داشبورد با', state.bookmarks.length, 'بوکمارک');
-        
-        // اگر بوکمارکی نداریم، پیام نشان می‌دهیم
-        if (state.bookmarks.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>📚 بوکمارکی یافت نشد</h3>
-                    <p>برای شروع، دکمه ویرایش را فشار داده و بوکمارک جدید اضافه کنید.</p>
-                    <button id="add-first-bookmark" class="btn-success">افزودن اولین بوکمارک</button>
-                </div>
-            `;
-            
-            const addBtn = document.getElementById('add-first-bookmark');
-            if (addBtn) {
-                addBtn.addEventListener('click', () => {
-                    document.getElementById('add-card-btn').click();
-                });
-            }
-            
-            return;
-        }
-        
-        // ساختاردهی بوکمارک‌ها بر اساس دسته‌بندی
-        const categorizedBookmarks = this.categorizeBookmarks(state.bookmarks);
-        console.log('دسته‌بندی‌ها:', Object.keys(categorizedBookmarks));
-        
-        // ایجاد کارت برای هر دسته‌بندی
-        Object.entries(categorizedBookmarks).forEach(([category, items], index) => {
-            const layout = state.layoutMap[category] || { 
-                col: (index % 3) * 8 + 1, 
-                row: Math.floor(index / 3) * 6 + 1, 
-                w: 8, 
-                h: 6,
-                view: "list"
-            };
-            
-            state.layoutMap[category] = layout;
-            this.createCard(category, items, layout, container);
-        });
-        
-        // ذخیره layout جدید
-        StorageManager.set(CONFIG.STORAGE_KEYS.LAYOUT, state.layoutMap);
-        
-        // اعمال فیلتر جستجو
-        if (state.searchTerm) {
-            this.applySearchFilter(state.searchTerm);
-        }
-    }
-
-    static categorizeBookmarks(bookmarks) {
-        const categories = {};
-        
-        bookmarks.forEach(bookmark => {
-            const category = bookmark.category || 'سایر';
-            if (!categories[category]) {
-                categories[category] = [];
-            }
-            
-            // اگر پوشه است، children را هم اضافه می‌کنیم
-            if (bookmark.type === 'folder' && bookmark.children) {
-                categories[category].push({
-                    ...bookmark,
-                    isFolder: true,
-                    children: bookmark.children
-                });
-            } else {
-                categories[category].push({
-                    ...bookmark,
-                    isFolder: false
-                });
-            }
-        });
-        
-        return categories;
-    }
-
-    static createCard(category, items, layout, container) {
-        const card = document.createElement('div');
-        card.className = 'bookmark-card';
-        card.dataset.category = category;
-        
-        // تنظیم موقعیت و ابعاد
-        card.style.gridColumnStart = layout.col;
-        card.style.gridRowStart = layout.row;
-        
-        const actualWidthInPixels =
-            (layout.w * CONFIG.GRID_CELL_SIZE) +
-            ((layout.w - 1) * CONFIG.GRID_GAP) +
-            CONFIG.HORIZONTAL_PIXEL_OFFSET;
-        
-        card.style.width = `${actualWidthInPixels}px`;
-        card.style.gridColumnEnd = `span ${layout.w}`;
-        card.style.gridRowEnd = `span ${layout.h}`;
-        
-        card.innerHTML = `
-            <div class="card-header">
-                <div class="card-title">${category}</div>
-                <button class="card-btn btn-drag visible-on-edit">::</button>
-            </div>
-            <div class="card-breadcrumbs">
-                <span class="crumb">خانه</span>
-            </div>
-            <div class="card-content">
-                <div class="bookmark-tiles"></div>
-            </div>
-            <div class="resize-handle visible-on-edit"></div>
-        `;
-        
-        // افزودن رویدادها
-        const dragBtn = card.querySelector('.btn-drag');
-        const titleEl = card.querySelector('.card-title');
-        const resizeEl = card.querySelector('.resize-handle');
-        
-        // ویرایش نام دسته‌بندی
-        if (titleEl) {
-            titleEl.addEventListener('click', () => {
-                if (state.isEditMode) {
-                    const newName = prompt("نام جدید دسته‌بندی:", category);
-                    if (newName && newName !== category) {
-                        // به‌روزرسانی layoutMap با نام جدید
-                        delete state.layoutMap[category];
-                        state.layoutMap[newName] = layout;
-                        
-                        // به‌روزرسانی بوکمارک‌ها
-                        state.bookmarks.forEach(bm => {
-                            if (bm.category === category) {
-                                bm.category = newName;
-                            }
-                        });
-                        
-                        this.renderDashboard();
-                    }
-                }
-            });
-        }
-        
-        if (dragBtn) {
-            dragBtn.addEventListener('mousedown', (e) => DragResizeManager.startDrag(e, card));
-        }
-        
-        if (resizeEl) {
-            resizeEl.addEventListener('mousedown', (e) => DragResizeManager.startResize(e, card));
-        }
-        
-        // رندر محتوا
-        this.renderCardContent(card, items, layout.view || "list");
-        container.appendChild(card);
-    }
-
-    static async renderCardContent(cardEl, items, viewMode) {
-        const tilesContainer = cardEl.querySelector('.bookmark-tiles');
-        const breadcrumbs = cardEl.querySelector('.card-breadcrumbs');
-        
-        if (!tilesContainer) return;
-        
-        tilesContainer.innerHTML = '';
-        tilesContainer.classList.toggle("view-grid", viewMode === "grid");
-        tilesContainer.classList.toggle("view-list", viewMode === "list");
-        
-        // دکمه‌های کنترل
-        if (state.isEditMode && breadcrumbs) {
-            this.addControlButtons(breadcrumbs, cardEl.dataset.category);
-        }
-        
-        // رندر آیتم‌ها
-        for (const item of items) {
-            const tile = await this.createTile(item, viewMode);
-            if (tile) {
-                tilesContainer.appendChild(tile);
-            }
-        }
-    }
-
-    static async createTile(item, viewMode) {
-        try {
-            const isFolder = item.type === 'folder' || item.isFolder;
-            const tile = document.createElement(isFolder ? "div" : "a");
-            tile.className = "tile";
-            tile.dataset.id = item.id;
-            tile.dataset.category = item.category || 'سایر';
-            tile.dataset.tags = item.tags ? item.tags.join(',') : '';
-            
-            if (isFolder) {
-                tile.classList.add("tile-folder");
-                tile.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    if (!state.isEditMode && item.children) {
-                        this.openFolder(item);
-                    }
-                });
-            } else if (item.url) {
-                tile.href = item.url;
-                tile.target = "_blank";
-                tile.rel = "noopener noreferrer";
-            }
-            
-            tile.classList.toggle("tile-grid-mode", viewMode === "grid");
-            
-            // آیکون
-            const img = document.createElement("img");
-            img.className = "tile-icon";
-            
-            if (isFolder) {
-                img.src = CONFIG.FOLDER_ICON_PATH;
-            } else if (item.url) {
-                img.src = CONFIG.FALLBACK_ICON_PATH;
-                // بارگذاری favicon به صورت غیرمسدودکننده
-                setTimeout(async () => {
-                    try {
-                        const icon = await FaviconManager.resolveFavicon(item.url);
-                        if (img) img.src = icon;
-                    } catch (error) {
-                        console.error('خطا در بارگذاری favicon:', error);
-                    }
-                }, 0);
-            } else {
-                img.src = CONFIG.FALLBACK_ICON_PATH;
-            }
-            
-            // نام
-            const nameDiv = document.createElement("div");
-            nameDiv.className = "tile-name";
-            nameDiv.textContent = item.title;
-            nameDiv.title = item.description || item.title;
-            
-            // دکمه ویرایش
-            const editBtn = document.createElement("div");
-            editBtn.className = "tile-edit-btn";
-            editBtn.textContent = "✏️";
-            editBtn.title = "ویرایش";
-            
-            editBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.openEditModal(item);
-            });
-            
-            tile.appendChild(img);
-            tile.appendChild(nameDiv);
-            
-            if (state.isEditMode) {
-                tile.appendChild(editBtn);
-            }
-            
-            return tile;
-        } catch (error) {
-            console.error('خطا در ایجاد tile:', error, item);
-            return null;
-        }
-    }
-
-    static addControlButtons(breadcrumbs, category) {
-        // پاک کردن دکمه‌های قبلی
-        breadcrumbs.querySelectorAll('.card-control-btn').forEach(btn => btn.remove());
-        
-        // دکمه حذف دسته‌بندی
-        const delBtn = document.createElement('button');
-        delBtn.className = "card-control-btn btn-del-crumb";
-        delBtn.textContent = "❌";
-        delBtn.title = "حذف این دسته‌بندی";
-        delBtn.addEventListener("click", () => {
-            if (confirm(`آیا از حذف دسته‌بندی "${category}" مطمئن هستید؟`)) {
-                delete state.layoutMap[category];
-                state.bookmarks = state.bookmarks.filter(b => b.category !== category);
-                this.renderDashboard();
-            }
-        });
-        breadcrumbs.appendChild(delBtn);
-        
-        // دکمه افزودن آیتم
-        const addBtn = document.createElement('button');
-        addBtn.className = "card-control-btn btn-add-crumb";
-        addBtn.textContent = "➕";
-        addBtn.title = "افزودن آیتم جدید";
-        addBtn.addEventListener('click', () => this.openAddModal(category));
-        breadcrumbs.appendChild(addBtn);
-        
-        // دکمه تغییر حالت نمایش
-        const viewBtn = document.createElement('button');
-        viewBtn.className = "card-control-btn btn-view-crumb";
-        viewBtn.textContent = "👁️";
-        viewBtn.title = "تغییر حالت نمایش";
-        viewBtn.addEventListener("click", () => {
-            const layout = state.layoutMap[category];
-            layout.view = layout.view === "grid" ? "list" : "grid";
-            this.renderDashboard();
-        });
-        breadcrumbs.appendChild(viewBtn);
-    }
-
-    static openFolder(folder) {
-        // ایجاد modal برای نمایش محتوای پوشه
-        const modal = document.getElementById('bookmark-modal');
-        if (!modal) return;
-        
-        modal.innerHTML = `
-            <div class="modal-content">
-                <h3>${folder.title}</h3>
-                <div class="folder-contents">
-                    ${folder.children?.map(child => `
-                        <a href="${child.url || '#'}" class="folder-item" target="_blank">
-                            <img src="${CONFIG.FALLBACK_ICON_PATH}" class="folder-icon">
-                            <span>${child.title}</span>
-                        </a>
-                    `).join('') || '<p>این پوشه خالی است.</p>'}
-                </div>
-                <div class="modal-buttons">
-                    <button id="close-folder-btn" class="btn-secondary">بستن</button>
-                </div>
-            </div>
-        `;
-        
-        modal.classList.remove('hidden');
-        const closeBtn = document.getElementById('close-folder-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                modal.classList.add('hidden');
-            });
-        }
-    }
-
-    static openAddModal(category) {
-        const modal = document.getElementById('bookmark-modal');
-        if (!modal) return;
-        
-        const currentCardId = document.getElementById('current-card-id');
-        const editingItemId = document.getElementById('editing-item-id');
-        
-        if (currentCardId) currentCardId.value = category;
-        if (editingItemId) editingItemId.value = '';
-        
-        // ریست فرم
-        const form = document.getElementById('bookmark-form');
-        if (form) form.reset();
-        
-        const typeSelect = document.getElementById('bookmark-type');
-        const categoryInput = document.getElementById('bookmark-category');
-        
-        if (typeSelect) typeSelect.value = 'bookmark';
-        if (categoryInput) categoryInput.value = category;
-        
-        this.updateModalFields();
-        
-        modal.classList.remove('hidden');
-        state.currentModal = 'add';
-    }
-
-    static openEditModal(item) {
-        const modal = document.getElementById('bookmark-modal');
-        if (!modal) return;
-        
-        const editingItemId = document.getElementById('editing-item-id');
-        if (editingItemId) editingItemId.value = item.id;
-        
-        // پر کردن فرم
-        const nameInput = document.getElementById('bookmark-name');
-        const urlInput = document.getElementById('bookmark-url');
-        const typeSelect = document.getElementById('bookmark-type');
-        const categoryInput = document.getElementById('bookmark-category');
-        const tagsInput = document.getElementById('bookmark-tags');
-        const descInput = document.getElementById('bookmark-description');
-        
-        if (nameInput) nameInput.value = item.title || '';
-        if (urlInput) urlInput.value = item.url || '';
-        if (typeSelect) typeSelect.value = item.type === 'folder' ? 'folder' : 'bookmark';
-        if (categoryInput) categoryInput.value = item.category || 'سایر';
-        if (tagsInput) tagsInput.value = item.tags ? item.tags.join(', ') : '';
-        if (descInput) descInput.value = item.description || '';
-        
-        this.updateModalFields();
-        
-        const deleteBtn = document.getElementById('delete-btn');
-        if (deleteBtn) deleteBtn.classList.remove('hidden');
-        
-        modal.classList.remove('hidden');
-        state.currentModal = 'edit';
-    }
-
-    static updateModalFields() {
-        const typeSelect = document.getElementById('bookmark-type');
-        if (!typeSelect) return;
-        
-        const type = typeSelect.value;
-        const urlGroup = document.getElementById('url-field-group');
-        
-        if (urlGroup) {
-            urlGroup.style.display = type === 'bookmark' ? 'block' : 'none';
-        }
-    }
-
-    static applySearchFilter(searchTerm) {
-        const tiles = document.querySelectorAll('.tile');
-        tiles.forEach(tile => {
-            const title = tile.querySelector('.tile-name')?.textContent.toLowerCase() || '';
-            const category = tile.dataset.category?.toLowerCase() || '';
-            const tags = tile.dataset.tags?.toLowerCase() || '';
-            
-            const matches = title.includes(searchTerm) || 
-                           category.includes(searchTerm) || 
-                           tags.includes(searchTerm);
-            
-            tile.classList.toggle('filtered-out', !matches);
-            tile.classList.toggle('highlighted', matches && searchTerm.length > 0);
-        });
     }
 }
 
@@ -985,7 +607,8 @@ class ImportExportManager {
             theme: state.isDarkMode ? 'dark' : 'light',
             background: StorageManager.get(CONFIG.STORAGE_KEYS.BACKGROUND),
             customUrls: StorageManager.get(CONFIG.STORAGE_KEYS.CUSTOM_URLS),
-            settings: StorageManager.get(CONFIG.STORAGE_KEYS.SETTINGS)
+            settings: StorageManager.get(CONFIG.STORAGE_KEYS.SETTINGS),
+            currentPaths: state.currentPaths
         };
         
         const dataStr = JSON.stringify(settings, null, 2);
@@ -1023,6 +646,11 @@ class ImportExportManager {
                         state.isCompactMode = importedSettings.settings.compactView || false;
                     }
                     
+                    if (importedSettings.currentPaths) {
+                        state.currentPaths = importedSettings.currentPaths;
+                        StorageManager.set(CONFIG.STORAGE_KEYS.CURRENT_PATHS, state.currentPaths);
+                    }
+                    
                     // رندر مجدد
                     await Renderer.renderDashboard();
                     
@@ -1049,58 +677,528 @@ class ImportExportManager {
     }
 }
 
+// ==================== رندرینگ و DOM ====================
+class Renderer {
+    static async renderDashboard() {
+        const container = document.getElementById('grid-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        document.body.classList.toggle('editing-mode', state.isEditMode);
+        document.body.classList.toggle('compact-mode', state.isCompactMode);
+        
+        console.log('رندر کردن داشبورد با', state.bookmarks.length, 'بوکمارک');
+        
+        // اگر بوکمارکی نداریم، پیام نشان می‌دهیم
+        if (state.bookmarks.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h3>📚 بوکمارکی یافت نشد</h3>
+                    <p>برای شروع، دکمه ویرایش را فشار داده و بوکمارک جدید اضافه کنید.</p>
+                    <button id="add-first-bookmark" class="btn-success">افزودن اولین بوکمارک</button>
+                </div>
+            `;
+            
+            const addBtn = document.getElementById('add-first-bookmark');
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    document.getElementById('edit-mode-btn').click(); // وارد حالت ویرایش شو
+                });
+            }
+            
+            return;
+        }
+        
+        // ساختاردهی بوکمارک‌ها بر اساس دسته‌بندی
+        const categorizedBookmarks = this.categorizeBookmarks(state.bookmarks);
+        console.log('دسته‌بندی‌ها:', Object.keys(categorizedBookmarks));
+        
+        // ایجاد کارت برای هر دسته‌بندی
+        Object.entries(categorizedBookmarks).forEach(([category, items], index) => {
+            const layout = state.layoutMap[category] || { 
+                col: (index % 3) * 8 + 1, 
+                row: Math.floor(index / 3) * 6 + 1, 
+                w: 8, 
+                h: 6,
+                view: "list"
+            };
+            
+            state.layoutMap[category] = layout;
+            this.createCard(category, items, layout, container);
+        });
+        
+        // ذخیره layout جدید
+        StorageManager.set(CONFIG.STORAGE_KEYS.LAYOUT, state.layoutMap);
+        
+        // اعمال فیلتر جستجو
+        if (state.searchTerm) {
+            this.applySearchFilter(state.searchTerm);
+        }
+    }
+
+    static categorizeBookmarks(bookmarks) {
+        const categories = {};
+        
+        bookmarks.forEach(bookmark => {
+            const category = bookmark.category || 'سایر';
+            if (!categories[category]) {
+                categories[category] = [];
+            }
+            categories[category].push(bookmark);
+        });
+        
+        return categories;
+    }
+
+    static createCard(category, items, layout, container) {
+        const card = document.createElement('div');
+        card.className = 'bookmark-card';
+        card.dataset.category = category;
+        
+        // تنظیم موقعیت و ابعاد
+        card.style.gridColumnStart = layout.col;
+        card.style.gridRowStart = layout.row;
+        
+        const actualWidthInPixels =
+            (layout.w * CONFIG.GRID_CELL_SIZE) +
+            ((layout.w - 1) * CONFIG.GRID_GAP) +
+            CONFIG.HORIZONTAL_PIXEL_OFFSET;
+        
+        card.style.width = `${actualWidthInPixels}px`;
+        card.style.gridColumnEnd = `span ${layout.w}`;
+        card.style.gridRowEnd = `span ${layout.h}`;
+        
+        card.innerHTML = `
+            <div class="card-header">
+                <div class="card-title">${category}</div>
+                <button class="card-btn btn-drag visible-on-edit">::</button>
+            </div>
+            <div class="card-breadcrumbs">
+                <span class="crumb">خانه</span>
+            </div>
+            <div class="card-content">
+                <div class="bookmark-tiles"></div>
+            </div>
+            <div class="resize-handle visible-on-edit"></div>
+        `;
+        
+        // افزودن رویدادها
+        const dragBtn = card.querySelector('.btn-drag');
+        const titleEl = card.querySelector('.card-title');
+        const resizeEl = card.querySelector('.resize-handle');
+        
+        // ویرایش نام دسته‌بندی
+        if (titleEl) {
+            titleEl.addEventListener('click', () => {
+                if (state.isEditMode) {
+                    const newName = prompt("نام جدید دسته‌بندی:", category);
+                    if (newName && newName !== category) {
+                        // به‌روزرسانی layoutMap با نام جدید
+                        delete state.layoutMap[category];
+                        state.layoutMap[newName] = layout;
+                        
+                        // به‌روزرسانی بوکمارک‌ها
+                        state.bookmarks.forEach(bm => {
+                            if (bm.category === category) {
+                                bm.category = newName;
+                            }
+                        });
+                        
+                        this.renderDashboard();
+                    }
+                }
+            });
+        }
+        
+        if (dragBtn) {
+            dragBtn.addEventListener('mousedown', (e) => DragResizeManager.startDrag(e, card));
+        }
+        
+        if (resizeEl) {
+            resizeEl.addEventListener('mousedown', (e) => DragResizeManager.startResize(e, card));
+        }
+        
+        // رندر محتوا
+        this.renderCardContent(card, items, layout.view || "list");
+        container.appendChild(card);
+    }
+
+    static async renderCardContent(cardEl, items, viewMode) {
+        const tilesContainer = cardEl.querySelector('.bookmark-tiles');
+        const breadcrumbs = cardEl.querySelector('.card-breadcrumbs');
+        
+        if (!tilesContainer) return;
+        
+        tilesContainer.innerHTML = '';
+        tilesContainer.classList.toggle("view-grid", viewMode === "grid");
+        tilesContainer.classList.toggle("view-list", viewMode === "list");
+        
+        // گرفتن آدرس فعلی برای این کارت
+        const category = cardEl.dataset.category;
+        const currentPath = state.currentPaths[category] || [];
+        
+        // رندر Breadcrumb
+        this.renderBreadcrumbs(breadcrumbs, category, currentPath, items);
+        
+        // دکمه‌های کنترل (در حالت ویرایش)
+        if (state.isEditMode && breadcrumbs) {
+            this.addControlButtons(breadcrumbs, category, currentPath);
+        }
+        
+        // پیدا کردن آیتم‌های سطح فعلی
+        const currentLevelItems = this.getCurrentLevelItems(category, items, currentPath);
+        
+        // رندر آیتم‌ها
+        for (const item of currentLevelItems) {
+            const tile = await this.createTile(item, viewMode, category, currentPath);
+            if (tile) {
+                tilesContainer.appendChild(tile);
+            }
+        }
+    }
+
+    static renderBreadcrumbs(breadcrumbsEl, category, currentPath, allItems) {
+        if (!breadcrumbsEl) return;
+        
+        breadcrumbsEl.innerHTML = '';
+        
+        // همیشه "خانه" اول باشه
+        const homeCrumb = document.createElement('span');
+        homeCrumb.className = 'crumb';
+        homeCrumb.textContent = 'خانه';
+        homeCrumb.addEventListener('click', () => {
+            this.navigateToPath(category, []);
+        });
+        breadcrumbsEl.appendChild(homeCrumb);
+        
+        // اگر مسیری وجود داره، آیتم‌های مسیر رو اضافه کن
+        if (currentPath && currentPath.length > 0) {
+            let accumulatedPath = [];
+            
+            for (let i = 0; i < currentPath.length; i++) {
+                const folderId = currentPath[i];
+                
+                // جداکننده
+                const separator = document.createElement('span');
+                separator.className = 'crumb-separator';
+                separator.textContent = ' › ';
+                breadcrumbsEl.appendChild(separator);
+                
+                // پیدا کردن نام پوشه
+                const folderName = this.getFolderNameById(category, folderId, currentPath.slice(0, i), allItems);
+                
+                const crumb = document.createElement('span');
+                crumb.className = 'crumb';
+                crumb.textContent = folderName || `پوشه ${i + 1}`;
+                
+                // با کلیک به این سطح از مسیر برگرد
+                accumulatedPath = currentPath.slice(0, i + 1);
+                crumb.addEventListener('click', () => {
+                    this.navigateToPath(category, accumulatedPath);
+                });
+                
+                breadcrumbsEl.appendChild(crumb);
+            }
+        }
+    }
+
+    static getFolderNameById(category, folderId, path, allItems) {
+        let currentItems = allItems.filter(item => item.category === category);
+        
+        // دنبال پوشه در مسیر بگرد
+        for (const id of path) {
+            const folder = currentItems.find(item => item.id === id && item.type === 'folder');
+            if (folder && folder.children) {
+                currentItems = folder.children;
+            }
+        }
+        
+        const folder = currentItems.find(item => item.id === folderId);
+        return folder ? folder.title : '';
+    }
+
+    static getCurrentLevelItems(category, allItems, currentPath) {
+        // اگر در ریشه هستیم
+        if (!currentPath || currentPath.length === 0) {
+            return allItems.filter(item => item.category === category);
+        }
+        
+        // دنبال پوشه‌ها در مسیر برو
+        let currentItems = allItems.filter(item => item.category === category);
+        
+        for (const folderId of currentPath) {
+            const folder = currentItems.find(item => item.id === folderId && item.type === 'folder');
+            if (folder && folder.children) {
+                currentItems = folder.children;
+            } else {
+                // اگر پوشه پیدا نشد، به ریشه برگرد
+                this.navigateToPath(category, []);
+                return allItems.filter(item => item.category === category);
+            }
+        }
+        
+        return currentItems;
+    }
+
+    static navigateToPath(category, newPath) {
+        state.currentPaths[category] = newPath;
+        StorageManager.set(CONFIG.STORAGE_KEYS.CURRENT_PATHS, state.currentPaths);
+        this.renderDashboard();
+    }
+
+    static async createTile(item, viewMode, category, currentPath) {
+        try {
+            const isFolder = item.type === 'folder' || (item.children && item.children.length > 0);
+            const tile = document.createElement(isFolder ? "div" : "a");
+            tile.className = "tile";
+            tile.dataset.id = item.id;
+            tile.dataset.category = item.category || 'سایر';
+            tile.dataset.tags = item.tags ? item.tags.join(',') : '';
+            
+            if (isFolder) {
+                tile.classList.add("tile-folder");
+                tile.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    if (!state.isEditMode) {
+                        // وارد پوشه شو
+                        const newPath = [...(currentPath || []), item.id];
+                        this.navigateToPath(category, newPath);
+                    }
+                });
+            } else if (item.url) {
+                tile.href = item.url;
+                tile.target = "_blank";
+                tile.rel = "noopener noreferrer";
+            }
+            
+            tile.classList.toggle("tile-grid-mode", viewMode === "grid");
+            
+            // آیکون
+            const img = document.createElement("img");
+            img.className = "tile-icon";
+            
+            if (isFolder) {
+                img.src = CONFIG.FOLDER_ICON_PATH;
+            } else if (item.url) {
+                img.src = CONFIG.FALLBACK_ICON_PATH;
+                // بارگذاری favicon به صورت غیرمسدودکننده
+                setTimeout(async () => {
+                    try {
+                        const icon = await FaviconManager.resolveFavicon(item.url);
+                        if (img) img.src = icon;
+                    } catch (error) {
+                        console.error('خطا در بارگذاری favicon:', error);
+                    }
+                }, 0);
+            } else {
+                img.src = CONFIG.FALLBACK_ICON_PATH;
+            }
+            
+            // نام
+            const nameDiv = document.createElement("div");
+            nameDiv.className = "tile-name";
+            nameDiv.textContent = item.title;
+            nameDiv.title = item.description || item.title;
+            
+            // دکمه ویرایش (در حالت ویرایش)
+            const editBtn = document.createElement("div");
+            editBtn.className = "tile-edit-btn";
+            editBtn.textContent = "✏️";
+            editBtn.title = "ویرایش";
+            
+            editBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.openEditModal(item, category, currentPath);
+            });
+            
+            tile.appendChild(img);
+            tile.appendChild(nameDiv);
+            
+            if (state.isEditMode) {
+                tile.appendChild(editBtn);
+            }
+            
+            return tile;
+        } catch (error) {
+            console.error('خطا در ایجاد tile:', error, item);
+            return null;
+        }
+    }
+
+    static addControlButtons(breadcrumbs, category, currentPath) {
+        // پاک کردن دکمه‌های قبلی
+        breadcrumbs.querySelectorAll('.card-control-btn').forEach(btn => btn.remove());
+        
+        // دکمه حذف دسته‌بندی (فقط در ریشه)
+        if (!currentPath || currentPath.length === 0) {
+            const delBtn = document.createElement('button');
+            delBtn.className = "card-control-btn btn-del-crumb";
+            delBtn.textContent = "❌";
+            delBtn.title = "حذف این دسته‌بندی";
+            delBtn.addEventListener("click", () => {
+                if (confirm(`آیا از حذف دسته‌بندی "${category}" مطمئن هستید؟`)) {
+                    delete state.layoutMap[category];
+                    state.bookmarks = state.bookmarks.filter(b => b.category !== category);
+                    this.renderDashboard();
+                }
+            });
+            breadcrumbs.appendChild(delBtn);
+        }
+        
+        // دکمه افزودن آیتم
+        const addBtn = document.createElement('button');
+        addBtn.className = "card-control-btn btn-add-crumb";
+        addBtn.textContent = "➕";
+        addBtn.title = "افزودن آیتم جدید";
+        addBtn.addEventListener('click', () => this.openAddModal(category, currentPath));
+        breadcrumbs.appendChild(addBtn);
+        
+        // دکمه تغییر حالت نمایش
+        const viewBtn = document.createElement('button');
+        viewBtn.className = "card-control-btn btn-view-crumb";
+        viewBtn.textContent = "👁️";
+        viewBtn.title = "تغییر حالت نمایش";
+        viewBtn.addEventListener("click", () => {
+            const layout = state.layoutMap[category];
+            layout.view = layout.view === "grid" ? "list" : "grid";
+            this.renderDashboard();
+        });
+        breadcrumbs.appendChild(viewBtn);
+        
+        // اگر در پوشه‌ای هستیم، دکمه برگشت اضافه کن
+        if (currentPath && currentPath.length > 0) {
+            const backBtn = document.createElement('button');
+            backBtn.className = "card-control-btn btn-back-crumb";
+            backBtn.textContent = "↩️";
+            backBtn.title = "برگشت به سطح قبل";
+            backBtn.addEventListener('click', () => {
+                const newPath = currentPath.slice(0, -1);
+                this.navigateToPath(category, newPath);
+            });
+            breadcrumbs.appendChild(backBtn);
+        }
+    }
+
+    static openAddModal(category, currentPath) {
+        const modal = document.getElementById('bookmark-modal');
+        if (!modal) return;
+        
+        // ذخیره اطلاعات موقعیت
+        modal.dataset.category = category;
+        modal.dataset.currentPath = JSON.stringify(currentPath || []);
+        
+        // ریست فرم
+        const form = document.getElementById('bookmark-form');
+        if (form) form.reset();
+        
+        const typeSelect = document.getElementById('bookmark-type');
+        const categoryInput = document.getElementById('bookmark-category');
+        
+        if (typeSelect) typeSelect.value = 'bookmark';
+        if (categoryInput) categoryInput.value = category;
+        
+        this.updateModalFields();
+        
+        // مخفی کردن دکمه حذف
+        const deleteBtn = document.getElementById('delete-btn');
+        if (deleteBtn) deleteBtn.classList.add('hidden');
+        
+        modal.classList.remove('hidden');
+        state.currentModal = 'add';
+    }
+
+    static openEditModal(item, category, currentPath) {
+        const modal = document.getElementById('bookmark-modal');
+        if (!modal) return;
+        
+        // ذخیره اطلاعات موقعیت
+        modal.dataset.category = category;
+        modal.dataset.currentPath = JSON.stringify(currentPath || []);
+        
+        const editingItemId = document.getElementById('editing-item-id');
+        if (editingItemId) editingItemId.value = item.id;
+        
+        // پر کردن فرم
+        const nameInput = document.getElementById('bookmark-name');
+        const urlInput = document.getElementById('bookmark-url');
+        const typeSelect = document.getElementById('bookmark-type');
+        const categoryInput = document.getElementById('bookmark-category');
+        const tagsInput = document.getElementById('bookmark-tags');
+        const descInput = document.getElementById('bookmark-description');
+        
+        if (nameInput) nameInput.value = item.title || '';
+        if (urlInput) urlInput.value = item.url || '';
+        if (typeSelect) typeSelect.value = item.type === 'folder' ? 'folder' : 'bookmark';
+        if (categoryInput) categoryInput.value = item.category || 'سایر';
+        if (tagsInput) tagsInput.value = item.tags ? item.tags.join(', ') : '';
+        if (descInput) descInput.value = item.description || '';
+        
+        this.updateModalFields();
+        
+        // نمایش دکمه حذف
+        const deleteBtn = document.getElementById('delete-btn');
+        if (deleteBtn) deleteBtn.classList.remove('hidden');
+        
+        modal.classList.remove('hidden');
+        state.currentModal = 'edit';
+    }
+
+    static updateModalFields() {
+        const typeSelect = document.getElementById('bookmark-type');
+        if (!typeSelect) return;
+        
+        const type = typeSelect.value;
+        const urlGroup = document.getElementById('url-field-group');
+        
+        if (urlGroup) {
+            urlGroup.style.display = type === 'bookmark' ? 'block' : 'none';
+        }
+    }
+
+    static applySearchFilter(searchTerm) {
+        const tiles = document.querySelectorAll('.tile');
+        tiles.forEach(tile => {
+            const title = tile.querySelector('.tile-name')?.textContent.toLowerCase() || '';
+            const category = tile.dataset.category?.toLowerCase() || '';
+            const tags = tile.dataset.tags?.toLowerCase() || '';
+            
+            const matches = title.includes(searchTerm) || 
+                           category.includes(searchTerm) || 
+                           tags.includes(searchTerm);
+            
+            tile.classList.toggle('filtered-out', !matches);
+            tile.classList.toggle('highlighted', matches && searchTerm.length > 0);
+        });
+    }
+}
+
 // ==================== Event Handlers ====================
 class EventManager {
     static setup() {
         console.log('تنظیم رویدادها...');
         
         // دکمه حالت ویرایش
-		const editModeBtn = document.getElementById('edit-mode-btn');
-		if (editModeBtn) {
-			editModeBtn.addEventListener('click', () => {
-				state.isEditMode = !state.isEditMode;
-				const subControls = document.getElementById('sub-controls');
-				
-				editModeBtn.textContent = state.isEditMode ? '✅' : '✏️';
-				editModeBtn.title = state.isEditMode ? 'خروج از حالت ویرایش' : 'حالت ویرایش';
-				
-				// این شرط رو اضافه کن:
-				if (subControls) {
-					if (state.isEditMode) {
-						subControls.classList.remove('hidden-controls');
-						subControls.classList.add('visible-controls');
-					} else {
-						subControls.classList.remove('visible-controls');
-						subControls.classList.add('hidden-controls');
-					}
-				}
-				
-				Renderer.renderDashboard();
-			});
-		}
-        
-        // دکمه افزودن کارت
-        const addCardBtn = document.getElementById('add-card-btn');
-        if (addCardBtn) {
-            addCardBtn.addEventListener('click', () => {
-                if (!state.isEditMode) return;
+        const editModeBtn = document.getElementById('edit-mode-btn');
+        if (editModeBtn) {
+            editModeBtn.addEventListener('click', () => {
+                state.isEditMode = !state.isEditMode;
+                const subControls = document.getElementById('sub-controls');
                 
-                const categoryName = prompt("نام دسته‌بندی جدید:");
-                if (categoryName && categoryName.trim()) {
-                    // ایجاد layout جدید
-                    const newLayout = {
-                        col: 1,
-                        row: 1,
-                        w: 8,
-                        h: 6,
-                        view: "list"
-                    };
-                    
-                    state.layoutMap[categoryName] = newLayout;
-                    StorageManager.set(CONFIG.STORAGE_KEYS.LAYOUT, state.layoutMap);
-                    
-                    Renderer.renderDashboard();
+                editModeBtn.textContent = state.isEditMode ? '✅' : '✏️';
+                editModeBtn.title = state.isEditMode ? 'خروج از حالت ویرایش' : 'حالت ویرایش';
+                
+                if (subControls) {
+                    if (state.isEditMode) {
+                        subControls.classList.remove('hidden-controls');
+                        subControls.classList.add('visible-controls');
+                    } else {
+                        subControls.classList.remove('visible-controls');
+                        subControls.classList.add('hidden-controls');
+                    }
                 }
+                
+                Renderer.renderDashboard();
             });
         }
         
@@ -1288,7 +1386,15 @@ class EventManager {
                     description: document.getElementById('bookmark-description')?.value || ''
                 };
                 
+                const modal = document.getElementById('bookmark-modal');
+                const category = modal?.dataset.category;
+                const currentPath = modal?.dataset.currentPath ? JSON.parse(modal.dataset.currentPath) : [];
                 const itemId = document.getElementById('editing-item-id')?.value;
+                
+                // اضافه کردن parentPath اگر در پوشه‌ای هستیم
+                if (currentPath && currentPath.length > 0) {
+                    formData.parentPath = currentPath;
+                }
                 
                 try {
                     if (itemId) {
@@ -1299,7 +1405,6 @@ class EventManager {
                         BookmarkManager.addUserBookmark(formData);
                     }
                     
-                    const modal = document.getElementById('bookmark-modal');
                     if (modal) modal.classList.add('hidden');
                     
                     await Renderer.renderDashboard();
@@ -1425,18 +1530,15 @@ class App {
         try {
             console.log('راه‌اندازی برنامه...');
             
-            // حذف اسپینر لودینگ
-            const spinner = document.querySelector('.loading-spinner');
-            if (spinner) {
-                spinner.remove();
-            }
-            
             // بارگذاری اولیه
             ThemeManager.init();
             BackgroundManager.applySavedBackground();
             
             // بارگذاری layout
             state.layoutMap = StorageManager.get(CONFIG.STORAGE_KEYS.LAYOUT) || {};
+            
+            // بارگذاری currentPaths
+            state.currentPaths = StorageManager.get(CONFIG.STORAGE_KEYS.CURRENT_PATHS) || {};
             
             // بارگذاری بوکمارک‌ها
             await BookmarkManager.loadBookmarks();
@@ -1452,7 +1554,7 @@ class App {
             if (firstRun) {
                 StorageManager.set('netcofe_first_run', true);
                 setTimeout(() => {
-                    alert('🎉 به همیار کافینت خوش آمدید!\n\nبرای ویرایش دکمه ✏️ را فشار دهید.\nبوکمارک‌ها از منبع مرکزی بارگیری شده‌اند و می‌توانید آنها را شخصی‌سازی کنید.');
+                    alert('🎉 به همیار کافینت خوش آمدید!\n\nبرای ویرایش دکمه ✏️ را فشار دهید.\nبرای جستجو دکمه 🔍 را فشار دهید.\nبوکمارک‌ها از منبع مرکزی بارگیری شده‌اند و می‌توانید آنها را شخصی‌سازی کنید.');
                 }, 1000);
             }
             

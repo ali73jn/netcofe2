@@ -894,3 +894,76 @@ html, body {
     color: var(--secondary-color);
     margin-bottom: 20px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* به فایل dashboard.css اضافه کن: */
+
+/* استایل برای جداکننده Breadcrumb */
+.crumb-separator {
+    margin: 0 3px;
+    color: var(--secondary-color);
+    user-select: none;
+}
+
+/* دکمه برگشت */
+.btn-back-crumb {
+    color: var(--warning-color);
+    font-weight: bold;
+    font-size: 1em;
+}
+
+/* استایل برای حالت فعال Breadcrumb */
+.crumb {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--primary-color);
+    flex-shrink: 0;
+    margin: 0 2px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.crumb:hover {
+    background: rgba(0, 123, 255, 0.1);
+    text-decoration: none;
+}
+
+.crumb:active {
+    background: rgba(0, 123, 255, 0.2);
+}
+
+/* نمایش Breadcrumb در حالت فشرده */
+@media (max-width: 480px) {
+    .card-breadcrumbs {
+        flex-wrap: wrap;
+        font-size: 0.85em;
+    }
+    
+    .crumb {
+        margin: 1px;
+        padding: 1px 3px;
+    }
+    
+    .crumb-separator {
+        margin: 0 2px;
+    }
+}
