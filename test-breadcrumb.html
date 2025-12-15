@@ -2,158 +2,98 @@
 <html lang="fa">
 <head>
     <meta charset="UTF-8">
-    <title>تست Breadcrumb ساده</title>
+    <title>تست دکمه‌های کنترل</title>
     <style>
-        body {
-            font-family: Tahoma;
+        body { font-family: Tahoma; padding: 20px; }
+        .test-area {
+            background: #f5f5f5;
             padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
         .crumb {
-            background: none;
-            border: none;
-            color: blue;
+            color: #007bff;
             cursor: pointer;
-            padding: 8px 12px;
             margin: 0 5px;
-            font-size: 16px;
-            text-decoration: underline;
+            padding: 5px 10px;
+            border-radius: 3px;
         }
-        .crumb:hover {
-            background: #f0f0f0;
+        .crumb:hover { background: #f0f8ff; }
+        .control-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 14px;
         }
+        .delete { background: red; }
+        .add { background: green; }
+        .view { background: blue; }
+        .back { background: orange; color: #333; }
         #log {
+            background: #333;
+            color: #0f0;
+            padding: 15px;
+            font-family: monospace;
             margin-top: 20px;
-            padding: 10px;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 100px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
-    <h2>تست Breadcrumb</h2>
-    <div id="breadcrumbs"></div>
+    <h2>تست دکمه‌های کنترل Breadcrumb</h2>
+    
+    <div class="test-area">
+        <h3>حالت ریشه:</h3>
+        <div class="breadcrumb">
+            <span class="crumb">خانه</span>
+            <button class="control-btn delete" onclick="log('حذف کلیک شد')">❌</button>
+            <button class="control-btn add" onclick="log('افزودن کلیک شد')">➕</button>
+            <button class="control-btn view" onclick="log('تغییر نمایش کلیک شد')">👁️</button>
+        </div>
+        
+        <h3>حالت داخل پوشه:</h3>
+        <div class="breadcrumb">
+            <span class="crumb">خانه</span>
+            <span style="margin: 0 10px;">›</span>
+            <span class="crumb">پوشه ۱</span>
+            <button class="control-btn add" onclick="log('افزودن کلیک شد')">➕</button>
+            <button class="control-btn view" onclick="log('تغییر نمایش کلیک شد')">👁️</button>
+            <button class="control-btn back" onclick="log('برگشت کلیک شد')">↩️</button>
+        </div>
+    </div>
     
     <div id="log"></div>
     
     <script>
-        // داده تست
-        const testData = [
-            {
-                id: 'cars',
-                category: 'خودرو',
-                title: 'خودرو',
-                children: [
-                    {
-                        id: 'folder1',
-                        title: 'پورشه',
-                        type: 'folder',
-                        children: [
-                            {
-                                id: 'sub1',
-                                title: '911 مدل',
-                                type: 'folder',
-                                children: [
-                                    { id: 'item1', title: 'فروش پورشه', url: '#' }
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        id: 'folder2',
-                        title: 'بنز',
-                        type: 'folder',
-                        children: []
-                    }
-                ]
-            }
-        ];
-        
-        let currentPath = [];
-        let currentCategory = 'خودرو';
-        
-        function log(msg) {
-            document.getElementById('log').innerHTML += msg + '<br>';
-            console.log(msg);
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${time}] ${message}<br>`;
+            console.log(message);
         }
         
-        function renderBreadcrumbs() {
-            const container = document.getElementById('breadcrumbs');
-            container.innerHTML = '';
-            
-            // خانه
-            const homeBtn = document.createElement('button');
-            homeBtn.className = 'crumb';
-            homeBtn.textContent = 'خانه';
-            homeBtn.onclick = () => {
-                currentPath = [];
-                log('رفتن به خانه');
-                renderBreadcrumbs();
-            };
-            container.appendChild(homeBtn);
-            
-            // مسیر
-            if (currentPath.length > 0) {
-                let path = [];
-                
-                for (let i = 0; i < currentPath.length; i++) {
-                    const folderId = currentPath[i];
-                    
-                    // جداکننده
-                    const sep = document.createElement('span');
-                    sep.textContent = ' › ';
-                    sep.style.margin = '0 10px';
-                    container.appendChild(sep);
-                    
-                    // پیدا کردن نام پوشه
-                    let items = testData.filter(d => d.category === currentCategory);
-                    let folderName = 'پوشه';
-                    
-                    // دنبال پوشه برو
-                    for (let j = 0; j <= i; j++) {
-                        const id = currentPath[j];
-                        const folder = items.find(item => item.id === id);
-                        if (folder) {
-                            folderName = folder.title;
-                            if (folder.children) items = folder.children;
-                        }
-                    }
-                    
-                    // دکمه
-                    const btn = document.createElement('button');
-                    btn.className = 'crumb';
-                    btn.textContent = folderName;
-                    
-                    const pathToHere = currentPath.slice(0, i + 1);
-                    btn.onclick = () => {
-                        currentPath = pathToHere;
-                        log(`رفتن به: ${folderName} (${pathToHere})`);
-                        renderBreadcrumbs();
-                    };
-                    
-                    container.appendChild(btn);
-                }
-            }
-        }
+        log('برنامه تست شروع شد');
         
-        // تست کلیک روی پوشه
-        function testFolderClick(folderId, folderTitle) {
-            currentPath.push(folderId);
-            log(`کلیک روی پوشه: ${folderTitle}`);
-            renderBreadcrumbs();
-        }
-        
-        // شروع
-        log('برنامه شروع شد');
-        renderBreadcrumbs();
-        
-        // دکمه‌های تست
-        const testDiv = document.createElement('div');
-        testDiv.innerHTML = `
-            <h3>تست کلیک روی پوشه‌ها:</h3>
-            <button onclick="testFolderClick('folder1', 'پورشه')">کلیک روی پورشه</button>
-            <button onclick="testFolderClick('sub1', '911 مدل')">کلیک روی 911 مدل</button>
-        `;
-        document.body.appendChild(testDiv);
+        // شبیه‌سازی کلیک روی Breadcrumb
+        document.querySelectorAll('.crumb').forEach(crumb => {
+            crumb.addEventListener('click', function() {
+                log(`کلیک روی Breadcrumb: ${this.textContent}`);
+            });
+        });
     </script>
 </body>
 </html>

@@ -1094,13 +1094,18 @@ static navigateToPath(category, newPath) {
         }
     }
 
- // ==================== تابع addControlButtons رو کامل بازنویسی می‌کنیم ====================
+
+// ==================== تابع addControlButtons رو کامل بازنویسی می‌کنیم ====================
 static addControlButtons(breadcrumbs, category, currentPath) {
     if (!breadcrumbs) return;
     
     console.log('اضافه کردن دکمه‌های کنترل برای:', category, 'مسیر:', currentPath);
-    
-    // پاک کردن دکمه‌های قبلی
+    // بعد از تابع addControlButtons:
+	console.log('دکمه‌های کنترل برای کارت', category, 'اضافه شدند');
+	console.log('تعداد دکمه‌ها:', breadcrumbs.querySelectorAll('.card-control-btn').length);
+	console.log('دکمه‌ها:', breadcrumbs.innerHTML);
+	
+		// پاک کردن دکمه‌های قبلی
     breadcrumbs.querySelectorAll('.card-control-btn').forEach(btn => btn.remove());
     
     // 1. دکمه حذف دسته‌بندی (فقط در ریشه)
@@ -1206,6 +1211,9 @@ static addControlButtons(breadcrumbs, category, currentPath) {
     
     console.log('دکمه‌های کنترل اضافه شدند');
 }
+
+
+
 
     static openAddModal(category, currentPath) {
         const modal = document.getElementById('bookmark-modal');

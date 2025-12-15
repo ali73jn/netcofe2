@@ -324,40 +324,64 @@ html, body {
 }
 
 /* دکمه‌های کنترل در Breadcrumbs */
+/* به فایل dashboard.css اضافه کن: */
+
+/* دکمه‌های کنترل Breadcrumb */
 .card-control-btn {
-    margin-inline-start: 5px;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border: none;
-    background: var(--light-color);
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     cursor: pointer;
-    line-height: 1;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    opacity: 0.9;
-    transition: opacity 0.1s, transform 0.1s;
-    color: var(--text-color);
+    margin-right: 6px;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    opacity: 0.8;
 }
 
 .card-control-btn:hover {
     opacity: 1;
-    transform: scale(1.05);
+    transform: scale(1.1);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
 
 .btn-del-crumb {
-    color: var(--danger-color);
-    font-weight: bold;
-    font-size: 1em;
+    background: #dc3545;
+    color: white;
 }
 
 .btn-add-crumb {
-    color: var(--success-color);
-    font-weight: bold;
-    font-size: 1em;
+    background: #28a745;
+    color: white;
+}
+
+.btn-view-crumb {
+    background: #007bff;
+    color: white;
+}
+
+.btn-back-crumb {
+    background: #ffc107;
+    color: #333;
+}
+
+/* نمایش دکمه‌ها در حالت ویرایش */
+.editing-mode .card-control-btn {
+    display: inline-flex !important;
+}
+
+/* ریسپانسیو برای دکمه‌ها */
+@media (max-width: 768px) {
+    .card-control-btn {
+        width: 22px;
+        height: 22px;
+        margin-right: 4px;
+        font-size: 11px;
+    }
 }
 
 /* ------------------------------------------------------------------ */
