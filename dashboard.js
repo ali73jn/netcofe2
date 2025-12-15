@@ -1,8 +1,8 @@
 // ==================== تنظیمات اصلی ====================
 const CONFIG = {
     // لینک‌های پیش‌فرض
-    BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/data/bookmarks.json",
-    DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/netcofe/refs/heads/main/data/bookmarks.json",
+    BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/data/bookmarks.json",
+    DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/data/bookmarks.json",
     
     // مسیرهای لوکال
     FALLBACK_ICON_PATH: "icons/default_icon.png",
