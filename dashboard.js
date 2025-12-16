@@ -858,20 +858,40 @@ static async renderCardContent(cardEl, items, viewMode) {
     const category = cardEl.dataset.category;
     const currentPath = state.currentPaths[category] || [];
     
+    console.log('🎨 رندر کارت:', {
+        category: category,
+        path: currentPath,
+        totalItems: items.length
+    });
+    
     // رندر Breadcrumb
     this.renderBreadcrumbs(breadcrumbs, category, currentPath, items);
     
-    // همیشه دکمه‌های کنترل رو اضافه کن، اما با CSS کنترلشون کن
-    if (breadcrumbs) {
+    // دکمه‌های کنترل
+    if (state.isEditMode && breadcrumbs) {
         this.addControlButtons(breadcrumbs, category, currentPath);
     }
     
-    // رندر آیتم‌ها
-    const currentLevelItems = this.getCurrentLevelItems(category, items, currentPath);
-    
-    for (const item of currentLevelItems) {
-        const tile = await this.createTile(item, viewMode, category, currentPath);
-        if (tile) tilesContainer.appendChild(tile);
+    // دریافت آیتم‌های سطح فعلی
+    try {
+        const currentLevelItems = this.getCurrentLevelItems(category, items, currentPath);
+        console.log(`📝 ${currentLevelItems.length} آیتم برای نمایش`);
+        
+        // رندر آیتم‌ها
+        for (const item of currentLevelItems) {
+            const tile = await this.createTile(item, viewMode, category, currentPath);
+            if (tile) {
+                tilesContainer.appendChild(tile);
+            }
+        }
+    } catch (error) {
+        console.error('❌ خطا در رندر کارت:', error);
+        tilesContainer.innerHTML = `
+            <div class="error-message">
+                <p>خطا در بارگذاری محتوا</p>
+                <button onclick="location.reload()">بارگذاری مجدد</button>
+            </div>
+        `;
     }
 }
 
