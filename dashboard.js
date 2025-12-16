@@ -742,31 +742,61 @@ class Renderer {
 
 // در کلاس Renderer این تابع رو عوض کن:
 static categorizeBookmarks(bookmarks) {
+    console.log('🔍 شروع دسته‌بندی بوکمارک‌ها:', bookmarks);
+    
     const categories = {};
     
-    bookmarks.forEach(bookmark => {
-        // پوشه‌های ریشه را به عنوان دسته‌بندی در نظر بگیر
-        if ((bookmark.type === 'folder' && bookmark.children) || bookmark.children) {
-            const categoryName = bookmark.title || 'سایر';
-            if (!categories[categoryName]) {
-                categories[categoryName] = [];
-            }
-            
-            // اضافه کردن خود پوشه به دسته‌بندی
-            categories[categoryName].push({
-                ...bookmark,
-                category: categoryName, // اضافه کردن category
-                isRootFolder: true
-            });
+    // اگر bookmarks آرایه نیست، تبدیلش کن
+    if (!Array.isArray(bookmarks)) {
+        console.warn('⚠️ bookmarks آرایه نیست، تلاش برای تبدیل...');
+        if (bookmarks.bookmarks && Array.isArray(bookmarks.bookmarks)) {
+            bookmarks = bookmarks.bookmarks;
+        } else if (typeof bookmarks === 'object') {
+            bookmarks = Object.values(bookmarks);
         } else {
-            // اگر آیتم معمولی هست
-            const category = bookmark.category || 'سایر';
+            console.error('❌ فرمت bookmarks نامعتبر است');
+            return { 'سایر': [] };
+        }
+    }
+    
+    console.log(`📊 تعداد بوکمارک‌ها برای دسته‌بندی: ${bookmarks.length}`);
+    
+    // هر پوشه ریشه به عنوان یک دسته‌بندی
+    bookmarks.forEach(folder => {
+        if (!folder || !folder.title) return;
+        
+        // فقط پوشه‌ها رو به عنوان دسته‌بندی در نظر بگیر
+        if (folder.type === 'folder' || folder.children) {
+            const categoryName = folder.title;
+            console.log(`➕ ایجاد دسته‌بندی: "${categoryName}"`);
+            
+            // فقط children پوشه رو ذخیره کن، نه خود پوشه رو
+            categories[categoryName] = folder.children || [];
+            
+            // ذخیره اطلاعات پوشه اصلی برای استفاده در Breadcrumb
+            if (folder.children) {
+                folder.children.forEach(child => {
+                    child._parentCategory = categoryName;
+                    child._parentId = folder.id;
+                });
+            }
+        } else {
+            // اگر پوشه نیست، به دسته‌بندی "سایر" اضافه کن
+            const category = folder.category || 'سایر';
             if (!categories[category]) {
                 categories[category] = [];
             }
-            categories[category].push(bookmark);
+            categories[category].push(folder);
         }
     });
+    
+    console.log('✅ دسته‌بندی‌های ایجاد شده:', Object.keys(categories));
+    
+    // اگر هیچ دسته‌بندی ایجاد نشد
+    if (Object.keys(categories).length === 0) {
+        console.warn('⚠️ هیچ دسته‌بندی ایجاد نشد، ایجاد دسته‌بندی پیش‌فرض');
+        categories['سایر'] = [];
+    }
     
     return categories;
 }
@@ -864,7 +894,7 @@ static async renderCardContent(cardEl, items, viewMode) {
         totalItems: items.length
     });
     
-    // رندر Breadcrumb
+    // رندر Breadcrumb (نام دسته‌بندی به عنوان خانه)
     this.renderBreadcrumbs(breadcrumbs, category, currentPath, items);
     
     // دکمه‌های کنترل
@@ -875,7 +905,17 @@ static async renderCardContent(cardEl, items, viewMode) {
     // دریافت آیتم‌های سطح فعلی
     try {
         const currentLevelItems = this.getCurrentLevelItems(category, items, currentPath);
-        console.log(`📝 ${currentLevelItems.length} آیتم برای نمایش`);
+        console.log(`📝 ${currentLevelItems?.length || 0} آیتم برای نمایش`);
+        
+        if (!currentLevelItems || currentLevelItems.length === 0) {
+            tilesContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #666;">
+                    <p>📂 این پوشه خالی است</p>
+                    ${state.isEditMode ? '<button class="btn-success" onclick="Renderer.openAddModal(\'' + category + '\', ' + JSON.stringify(currentPath) + ')">افزودن آیتم جدید</button>' : ''}
+                </div>
+            `;
+            return;
+        }
         
         // رندر آیتم‌ها
         for (const item of currentLevelItems) {
@@ -896,77 +936,79 @@ static async renderCardContent(cardEl, items, viewMode) {
 }
 
 static getCurrentLevelItems(category, items, currentPath) {
-    console.log('دریافت آیتم‌های سطح:', category, currentPath);
+    console.log('🔍 دریافت آیتم‌های سطح:', {
+        category: category,
+        currentPath: currentPath,
+        itemsCount: items.length
+    });
     
-    // اگر مسیر نداریم، همه آیتم‌های این دسته رو برگردون
+    // items در اینجا children پوشه اصلی هستند
+    // اگر در ریشه هستیم، همه children های پوشه اصلی رو برگردون
     if (!currentPath || currentPath.length === 0) {
-        const result = items.filter(item => item.category === category);
-        console.log('آیتم‌های ریشه:', result.length);
-        return result;
+        console.log('📁 حالت ریشه - نمایش کودکان پوشه اصلی');
+        return items;
     }
     
-    // دنبال پوشه برو
-    let currentItems = items.filter(item => item.category === category);
+    console.log('📂 حالت داخل پوشه - مسیر:', currentPath);
     
-    for (const folderId of currentPath) {
-        console.log('جستجوی پوشه:', folderId, 'در', currentItems.length, 'آیتم');
+    // حرکت در مسیر پوشه‌های تو در تو
+    let currentLevel = items;
+    
+    for (let i = 0; i < currentPath.length; i++) {
+        const folderId = currentPath[i];
+        console.log(`   ↪️ سطح ${i + 1}: جستجوی پوشه ${folderId}`);
         
-        const folder = currentItems.find(item => item.id === folderId);
+        const nextFolder = currentLevel.find(item => 
+            item.id === folderId && (item.type === 'folder' || item.children)
+        );
         
-        if (!folder) {
-            console.error('پوشه پیدا نشد!');
-            return items.filter(item => item.category === category);
+        if (!nextFolder) {
+            console.error(`❌ پوشه ${folderId} پیدا نشد`);
+            return [];
         }
         
-        if (folder.children) {
-            currentItems = folder.children;
-        } else {
-            console.error('پوشه children ندارد!');
-            return items.filter(item => item.category === category);
+        // اگر آخرین سطح مسیر هستیم
+        if (i === currentPath.length - 1) {
+            console.log('✅ آخرین سطح مسیر رسیدیم');
+            return nextFolder.children || [];
         }
+        
+        // به سطح بعد برو
+        currentLevel = nextFolder.children || [];
     }
     
-    console.log('آیتم‌های سطح فعلی:', currentItems.length);
-    return currentItems;
+    return currentLevel;
 }
 
 
 // ==================== تابع renderBreadcrumbs اصلاح شده ====================
-// ==================== تابع renderBreadcrumbs کاملاً ساده شده ====================
 static renderBreadcrumbs(breadcrumbsEl, category, currentPath, allItems) {
-    if (!breadcrumbsEl) return;
+    console.log('🔄 شروع Breadcrumb...');
     
+    if (!breadcrumbsEl) {
+        console.warn('Breadcrumbs element پیدا نشد');
+        return;
+    }
+    
+    // پاک کردن
     breadcrumbsEl.innerHTML = '';
     
-    // دکمه خانه
-    const homeCrumb = document.createElement('button');
-    homeCrumb.className = 'crumb';
-    homeCrumb.textContent = 'خانه';
-    homeCrumb.style.cssText = `
-        background: none;
-        border: none;
-        color: var(--primary-color);
-        cursor: pointer;
-        padding: 4px 8px;
-        margin: 0 2px;
-        font-family: inherit;
-        font-size: inherit;
-    `;
+    // ذخیره context برای استفاده در event handlerها
+    const context = {
+        category: category,
+        navigate: this.navigateToPath.bind(this)
+    };
     
-    homeCrumb.addEventListener('click', (e) => {
-        e.preventDefault();
-        console.log('کلیک روی خانه');
-        this.navigateToPath(category, []);
-    });
+    // 1. خانه
+    const homeBtn = this.createBreadcrumbButton('خانه', [], context);
+    breadcrumbsEl.appendChild(homeBtn);
     
-    breadcrumbsEl.appendChild(homeCrumb);
-    
-    // اگر مسیر داریم
+    // 2. مسیرها
     if (currentPath && currentPath.length > 0) {
-        console.log('مسیر فعلی:', currentPath);
+        console.log('🗺️ ساختن مسیر Breadcrumb:', currentPath);
         
-        // ایجاد مسیر مرحله‌ای
-        let tempPath = [];
+        let accumulatedPath = [];
+        let currentItems = allItems;
         
         for (let i = 0; i < currentPath.length; i++) {
             const folderId = currentPath[i];
@@ -974,40 +1016,70 @@ static renderBreadcrumbs(breadcrumbsEl, category, currentPath, allItems) {
             // جداکننده
             const separator = document.createElement('span');
             separator.textContent = ' › ';
-            separator.style.cssText = 'margin: 0 5px; color: #666;';
+            separator.style.margin = '0 8px';
+            separator.style.color = '#666';
             breadcrumbsEl.appendChild(separator);
             
             // پیدا کردن نام پوشه
-            const folderName = this.findFolderName(allItems, category, folderId, currentPath.slice(0, i));
+            let folderName = `پوشه ${i + 1}`;
+            if (currentItems && Array.isArray(currentItems)) {
+                const folder = currentItems.find(item => item && item.id === folderId);
+                if (folder && folder.title) {
+                    folderName = folder.title;
+                }
+            }
             
-            // دکمه مسیر
-            const crumb = document.createElement('button');
-            crumb.className = 'crumb';
-            crumb.textContent = folderName || `پوشه ${i + 1}`;
-            crumb.style.cssText = `
-                background: none;
-                border: none;
-                color: var(--primary-color);
-                cursor: pointer;
-                padding: 4px 8px;
-                margin: 0 2px;
-                font-family: inherit;
-                font-size: inherit;
-                text-decoration: underline;
-            `;
+            // دکمه پوشه
+            accumulatedPath = currentPath.slice(0, i + 1);
+            const folderBtn = this.createBreadcrumbButton(folderName, accumulatedPath, context);
+            breadcrumbsEl.appendChild(folderBtn);
             
-            // ذخیره مسیر تا این نقطه
-            const pathToHere = currentPath.slice(0, i + 1);
-            
-            crumb.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('کلیک روی Breadcrumb:', pathToHere);
-                this.navigateToPath(category, pathToHere);
-            });
-            
-            breadcrumbsEl.appendChild(crumb);
+            // بروزرسانی currentItems برای سطح بعدی
+            if (currentItems && Array.isArray(currentItems)) {
+                const folder = currentItems.find(item => item && item.id === folderId);
+                if (folder && folder.children) {
+                    currentItems = folder.children;
+                }
+            }
         }
     }
+    
+    console.log('✅ Breadcrumb ساخته شد');
+}
+
+// تابع کمکی برای ایجاد دکمه‌های Breadcrumb
+static createBreadcrumbButton(text, path, context) {
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.className = 'crumb';
+    
+    // استایل پایه
+    Object.assign(button.style, {
+        background: 'none',
+        border: 'none',
+        color: 'var(--primary-color, #007bff)',
+        cursor: 'pointer',
+        padding: '4px 8px',
+        margin: '0 2px',
+        fontSize: '14px',
+        fontFamily: 'inherit',
+        textDecoration: 'underline'
+    });
+    
+    // Event handler
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log(`📍 کلیک Breadcrumb: "${text}" ->`, path);
+        
+        if (context.navigate) {
+            context.navigate(context.category, path);
+        } else {
+            console.error('تابع navigate وجود ندارد');
+        }
+    });
+    
+    return button;
 }
 
 // ==================== تابع ساده برای پیدا کردن نام پوشه ====================
@@ -1033,6 +1105,7 @@ static findFolderName(allItems, category, folderId, pathSoFar) {
     }
 }
 
+
 // ==================== تابع navigateToPath با لاگ بیشتر ====================
 static navigateToPath(category, newPath) {
     console.log('========== ناوبری ==========');
@@ -1052,86 +1125,86 @@ static navigateToPath(category, newPath) {
 
 
 
-    static async createTile(item, viewMode, category, currentPath) {
-        try {
-            const isFolder = item.type === 'folder' || (item.children && item.children.length > 0);
-            const tile = document.createElement(isFolder ? "div" : "a");
-            tile.className = "tile";
-            tile.dataset.id = item.id;
-            tile.dataset.category = item.category || 'سایر';
-            tile.dataset.tags = item.tags ? item.tags.join(',') : '';
+static async createTile(item, viewMode, category, currentPath) {
+    try {
+        const isFolder = item.type === 'folder' || item.children;
+        const tile = document.createElement(isFolder ? "div" : "a");
+        tile.className = "tile";
+        tile.dataset.id = item.id;
+        tile.dataset.category = category;
+        
+        if (isFolder) {
+            tile.classList.add("tile-folder");
             
-            if (isFolder) {
-                tile.classList.add("tile-folder");
-                tile.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    if (!state.isEditMode) {
-                        // وارد پوشه شو
-                        const newPath = [...(currentPath || []), item.id];
-                        this.navigateToPath(category, newPath);
-                    }
-                });
-            } else if (item.url) {
-                tile.href = item.url;
-                tile.target = "_blank";
-                tile.rel = "noopener noreferrer";
-            }
-            
-            tile.classList.toggle("tile-grid-mode", viewMode === "grid");
-            
-            // آیکون
-            const img = document.createElement("img");
-            img.className = "tile-icon";
-            
-            if (isFolder) {
-                img.src = CONFIG.FOLDER_ICON_PATH;
-            } else if (item.url) {
-                img.src = CONFIG.FALLBACK_ICON_PATH;
-                // بارگذاری favicon به صورت غیرمسدودکننده
-                setTimeout(async () => {
-                    try {
-                        const icon = await FaviconManager.resolveFavicon(item.url);
-                        if (img) img.src = icon;
-                    } catch (error) {
-                        console.error('خطا در بارگذاری favicon:', error);
-                    }
-                }, 0);
-            } else {
-                img.src = CONFIG.FALLBACK_ICON_PATH;
-            }
-            
-            // نام
-            const nameDiv = document.createElement("div");
-            nameDiv.className = "tile-name";
-            nameDiv.textContent = item.title;
-            nameDiv.title = item.description || item.title;
-            
-            // دکمه ویرایش (در حالت ویرایش)
-            const editBtn = document.createElement("div");
-            editBtn.className = "tile-edit-btn";
-            editBtn.textContent = "✏️";
-            editBtn.title = "ویرایش";
-            
-            editBtn.addEventListener("click", (e) => {
+            tile.addEventListener("click", (e) => {
                 e.preventDefault();
-                e.stopPropagation();
-                this.openEditModal(item, category, currentPath);
+                if (!state.isEditMode) {
+                    // وارد پوشه بشو
+                    const newPath = [...(currentPath || []), item.id];
+                    console.log('ورود به پوشه:', item.title, 'مسیر:', newPath);
+                    this.navigateToPath(category, newPath);
+                }
             });
-            
-            tile.appendChild(img);
-            tile.appendChild(nameDiv);
-            
-            if (state.isEditMode) {
-                tile.appendChild(editBtn);
-            }
-            
-            return tile;
-        } catch (error) {
-            console.error('خطا در ایجاد tile:', error, item);
-            return null;
+        } else if (item.url) {
+            tile.href = item.url;
+            tile.target = "_blank";
+            tile.rel = "noopener noreferrer";
         }
+        
+        tile.classList.toggle("tile-grid-mode", viewMode === "grid");
+        
+        // آیکون
+        const img = document.createElement("img");
+        img.className = "tile-icon";
+        
+        if (isFolder) {
+            img.src = CONFIG.FOLDER_ICON_PATH;
+        } else if (item.url) {
+            img.src = CONFIG.FALLBACK_ICON_PATH;
+            // بارگذاری favicon
+            setTimeout(async () => {
+                try {
+                    const icon = await FaviconManager.resolveFavicon(item.url);
+                    if (img) img.src = icon;
+                } catch (error) {
+                    console.error('خطا در بارگذاری favicon:', error);
+                }
+            }, 0);
+        } else {
+            img.src = CONFIG.FALLBACK_ICON_PATH;
+        }
+        
+        // نام
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "tile-name";
+        nameDiv.textContent = item.title;
+        nameDiv.title = item.description || item.title;
+        
+        // دکمه ویرایش
+        const editBtn = document.createElement("div");
+        editBtn.className = "tile-edit-btn";
+        editBtn.textContent = "✏️";
+        editBtn.title = "ویرایش";
+        
+        editBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.openEditModal(item, category, currentPath);
+        });
+        
+        tile.appendChild(img);
+        tile.appendChild(nameDiv);
+        
+        if (state.isEditMode) {
+            tile.appendChild(editBtn);
+        }
+        
+        return tile;
+    } catch (error) {
+        console.error('خطا در ایجاد tile:', error, item);
+        return null;
     }
-
+}
 
 // ==================== تابع addControlButtons رو کامل بازنویسی می‌کنیم ====================
 static addControlButtons(breadcrumbs, category, currentPath) {

@@ -1068,3 +1068,52 @@ html, body {
         margin: 0 2px;
     }
 }
+
+
+
+/* در dashboard.css اضافه کن: */
+.error-message {
+    text-align: center;
+    padding: 20px;
+    color: var(--danger-color);
+}
+
+.error-message button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+
+
+
+/* غیرفعال کردن کامل انیمیشن‌ها */
+*, *:before, *:after,
+.bookmark-card, .tile, .main-btn, .sub-btn,
+.card-control-btn, .btn-drag, .tile-edit-btn,
+.modal-overlay, .search-container {
+    animation: none !important;
+    animation-duration: 0s !important;
+    transition: none !important;
+    transition-duration: 0s !important;
+    transform: none !important;
+}
+
+/* حذف transform در hover */
+.bookmark-card:hover,
+.tile:hover,
+.main-btn:hover,
+.sub-btn:hover,
+.tile.tile-grid-mode:hover,
+.card-control-btn:hover {
+    transform: none !important;
+}
+
+/* حذف انیمیشن آفلاین */
+.offline-indicator {
+    animation: none !important;
+}
