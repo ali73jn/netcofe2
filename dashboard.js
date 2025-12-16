@@ -740,19 +740,36 @@ class Renderer {
         }
     }
 
-    static categorizeBookmarks(bookmarks) {
-        const categories = {};
-        
-        bookmarks.forEach(bookmark => {
+// در کلاس Renderer این تابع رو عوض کن:
+static categorizeBookmarks(bookmarks) {
+    const categories = {};
+    
+    bookmarks.forEach(bookmark => {
+        // پوشه‌های ریشه را به عنوان دسته‌بندی در نظر بگیر
+        if ((bookmark.type === 'folder' && bookmark.children) || bookmark.children) {
+            const categoryName = bookmark.title || 'سایر';
+            if (!categories[categoryName]) {
+                categories[categoryName] = [];
+            }
+            
+            // اضافه کردن خود پوشه به دسته‌بندی
+            categories[categoryName].push({
+                ...bookmark,
+                category: categoryName, // اضافه کردن category
+                isRootFolder: true
+            });
+        } else {
+            // اگر آیتم معمولی هست
             const category = bookmark.category || 'سایر';
             if (!categories[category]) {
                 categories[category] = [];
             }
             categories[category].push(bookmark);
-        });
-        
-        return categories;
-    }
+        }
+    });
+    
+    return categories;
+}
 
     static createCard(category, items, layout, container) {
         const card = document.createElement('div');
@@ -857,7 +874,6 @@ static async renderCardContent(cardEl, items, viewMode) {
         if (tile) tilesContainer.appendChild(tile);
     }
 }
-
 
 static getCurrentLevelItems(category, items, currentPath) {
     console.log('دریافت آیتم‌های سطح:', category, currentPath);

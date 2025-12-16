@@ -2,184 +2,122 @@
 <html lang="fa">
 <head>
     <meta charset="UTF-8">
-    <title>تست دکمه‌های کنترل</title>
+    <title>تست JSON</title>
     <style>
-        body {
-            font-family: Tahoma;
-            padding: 30px;
-            background: #f5f5f5;
-        }
-        .test-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .breadcrumb-test {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: #e9ecef;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-        .crumb-test {
-            color: #007bff;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            background: none;
-            border: none;
-            font-size: 16px;
-        }
-        .crumb-test:hover {
-            background: rgba(0, 123, 255, 0.1);
-        }
-        .control-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            margin-right: 10px;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .control-btn:hover {
-            transform: scale(1.1);
-        }
-        .delete { background: #dc3545; color: white; }
-        .add { background: #28a745; color: white; }
-        .view { background: #007bff; color: white; }
-        .back { background: #ffc107; color: #333; }
-        .separator {
-            margin: 0 10px;
-            color: #6c757d;
-        }
-        #log {
-            background: #333;
-            color: #0f0;
-            padding: 15px;
-            font-family: monospace;
-            border-radius: 8px;
-            margin-top: 20px;
-            min-height: 100px;
-            overflow-y: auto;
-        }
-        .toggle-btn {
-            padding: 10px 20px;
-            background: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px 0;
-        }
-        .toggle-btn:hover {
-            background: #5a6268;
-        }
-        .edit-mode {
-            border: 2px solid #007bff;
-        }
+        body { font-family: Tahoma; padding: 20px; }
+        .test-area { margin: 20px 0; padding: 20px; background: #f5f5f5; }
+        button { margin: 5px; padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+        #output { margin-top: 20px; padding: 15px; background: white; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
-    <h1>تست دکمه‌های کنترل Breadcrumb</h1>
+    <h2>تست ساختار JSON</h2>
     
-    <button class="toggle-btn" onclick="toggleEditMode()">
-        حالت ویرایش: <span id="mode-status">خاموش</span>
-    </button>
-    
-    <div class="test-container">
-        <h3>حالت ریشه (خانه):</h3>
-        <div class="breadcrumb-test" id="breadcrumb-root">
-            <button class="crumb-test" onclick="log('خانه کلیک شد')">خانه</button>
-            <button class="control-btn delete" onclick="log('حذف کلیک شد')">❌</button>
-            <button class="control-btn add" onclick="log('افزودن کلیک شد')">➕</button>
-            <button class="control-btn view" onclick="log('تغییر نمایش کلیک شد')">👁️</button>
-        </div>
-        
-        <h3>حالت داخل پوشه:</h3>
-        <div class="breadcrumb-test" id="breadcrumb-folder">
-            <button class="crumb-test" onclick="log('خانه کلیک شد')">خانه</button>
-            <span class="separator">›</span>
-            <button class="crumb-test" onclick="log('پوشه ۱ کلیک شد')">پوشه ۱</button>
-            <button class="control-btn add" onclick="log('افزودن کلیک شد')">➕</button>
-            <button class="control-btn view" onclick="log('تغییر نمایش کلیک شد')">👁️</button>
-            <button class="control-btn back" onclick="log('برگشت کلیک شد')">↩️</button>
-        </div>
-        
-        <h3>حالت چند سطحی:</h3>
-        <div class="breadcrumb-test" id="breadcrumb-deep">
-            <button class="crumb-test" onclick="log('خانه کلیک شد')">خانه</button>
-            <span class="separator">›</span>
-            <button class="crumb-test" onclick="log('پوشه ۱ کلیک شد')">خودرو</button>
-            <span class="separator">›</span>
-            <button class="crumb-test" onclick="log('پوشه ۲ کلیک شد')">پورشه</button>
-            <span class="separator">›</span>
-            <button class="crumb-test" onclick="log('پوشه ۳ کلیک شد')">مدل ۹۱۱</button>
-            <button class="control-btn add" onclick="log('افزودن کلیک شد')">➕</button>
-            <button class="control-btn view" onclick="log('تغییر نمایش کلیک شد')">👁️</button>
-            <button class="control-btn back" onclick="log('برگشت کلیک شد')">↩️</button>
-        </div>
+    <div class="test-area">
+        <button onclick="testCategorize()">تست دسته‌بندی</button>
+        <button onclick="testGetLevel()">تست سطح‌ها</button>
+        <button onclick="testNavigation()">تست ناوبری</button>
     </div>
     
-    <div id="log"></div>
+    <div id="output"></div>
     
     <script>
-        let isEditMode = false;
+        // JSON نمونه (مشابه داده‌های شما)
+        const sampleData = [
+            {
+                id: '359',
+                title: 'سایت های پرکاربرد',
+                type: 'folder',
+                children: [
+                    { id: '604', title: 'عدل ایران', type: 'bookmark', url: 'https://adliran.ir/' },
+                    { id: '435', title: 'سایر', type: 'folder', children: [
+                        { id: '178', title: 'قبضینو', type: 'bookmark', url: 'https://ghabzino.com/' }
+                    ]}
+                ]
+            },
+            {
+                id: '317',
+                title: 'ابزار ها',
+                type: 'folder',
+                children: [
+                    { id: '321', title: 'pdf', type: 'folder', children: [] }
+                ]
+            }
+        ];
         
-        function log(message) {
-            const logDiv = document.getElementById('log');
-            const time = new Date().toLocaleTimeString();
-            logDiv.innerHTML += `[${time}] ${message}<br>`;
-            console.log(message);
+        function log(msg) {
+            document.getElementById('output').innerHTML += msg + '<br>';
+            console.log(msg);
         }
         
-        function toggleEditMode() {
-            isEditMode = !isEditMode;
-            const status = document.getElementById('mode-status');
-            const containers = document.querySelectorAll('.breadcrumb-test');
+        function testCategorize() {
+            log('=== تست دسته‌بندی ===');
             
-            if (isEditMode) {
-                status.textContent = 'روشن';
-                containers.forEach(container => {
-                    container.classList.add('edit-mode');
-                    container.querySelectorAll('.control-btn').forEach(btn => {
-                        btn.style.display = 'flex';
-                    });
+            const categories = {};
+            sampleData.forEach(item => {
+                if (item.type === 'folder') {
+                    categories[item.title] = [item];
+                    log(`دسته‌بندی: ${item.title}`);
+                }
+            });
+            
+            log(`تعداد دسته‌ها: ${Object.keys(categories).length}`);
+        }
+        
+        function testGetLevel() {
+            log('=== تست دریافت سطح ===');
+            
+            // حالت ریشه
+            log('حالت ریشه:');
+            sampleData.forEach(item => {
+                if (item.type === 'folder') {
+                    log(`  - ${item.title}: ${item.children?.length || 0} آیتم`);
+                }
+            });
+            
+            // حالت داخل پوشه
+            log('حالت داخل پوشه "سایت های پرکاربرد":');
+            const siteFolder = sampleData.find(item => item.title === 'سایت های پرکاربرد');
+            if (siteFolder && siteFolder.children) {
+                siteFolder.children.forEach(child => {
+                    log(`  - ${child.title} (${child.type})`);
                 });
-                log('حالت ویرایش روشن شد');
-            } else {
-                status.textContent = 'خاموش';
-                containers.forEach(container => {
-                    container.classList.remove('edit-mode');
-                    container.querySelectorAll('.control-btn').forEach(btn => {
-                        btn.style.display = 'none';
-                    });
-                });
-                log('حالت ویرایش خاموش شد');
             }
         }
         
-        // شبیه‌سازی کلیک روی Breadcrumb
-        document.querySelectorAll('.crumb-test').forEach(crumb => {
-            crumb.addEventListener('click', function(e) {
-                e.preventDefault();
-                log(`کلیک روی Breadcrumb: "${this.textContent}"`);
-            });
-        });
+        function testNavigation() {
+            log('=== تست ناوبری ===');
+            
+            // شبیه‌سازی مسیر
+            const currentPath = ['435']; // وارد پوشه "سایر" شده‌ایم
+            
+            log(`مسیر: ${currentPath}`);
+            
+            // پیدا کردن پوشه اصلی
+            const rootFolder = sampleData.find(item => item.title === 'سایت های پرکاربرد');
+            
+            if (rootFolder) {
+                log(`پوشه ریشه: ${rootFolder.title}`);
+                
+                // حرکت در مسیر
+                let currentLevel = rootFolder.children || [];
+                
+                currentPath.forEach(folderId => {
+                    const folder = currentLevel.find(item => item.id === folderId);
+                    if (folder) {
+                        log(`  ↪️ وارد پوشه: ${folder.title}`);
+                        currentLevel = folder.children || [];
+                    }
+                });
+                
+                log(`آیتم‌های سطح فعلی: ${currentLevel.length} آیتم`);
+                currentLevel.forEach(item => {
+                    log(`    • ${item.title} (${item.type})`);
+                });
+            }
+        }
         
-        log('برنامه تست شروع شد');
-        
-        // ابتدا دکمه‌ها رو مخفی کن
-        document.querySelectorAll('.control-btn').forEach(btn => {
-            btn.style.display = 'none';
-        });
+        log('برنامه تست آماده است.');
     </script>
 </body>
 </html>
