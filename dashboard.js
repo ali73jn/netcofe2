@@ -1768,6 +1768,19 @@ class EventManager {
 class App {
     static async init() {
         try {
+			
+			if (!localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS)) {
+                try {
+                    const setRes = await fetch(CONFIG.SETTINGS_JSON_URL);
+                    if (setRes.ok) {
+                        const defaultSettings = await setRes.json();
+                        localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(defaultSettings));
+                        console.log('تنظیمات اولیه بارگذاری شد');
+                    }
+                } catch (e) { console.warn('خطا در تنظیمات اولیه'); }
+            }
+			
+			
             console.log('راه‌اندازی برنامه...');
             
             // بارگذاری اولیه
@@ -1786,41 +1799,12 @@ class App {
             // تنظیم رویدادها
             EventManager.setup();
 		    // تنظیمات	
-            if (!localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS)) {
-			try {
-					const setRes = await fetch(CONFIG.SETTINGS_JSON_URL);
-					if (setRes.ok) {
-						const defaultSettings = await setRes.json();
-						localStorage.setItem(
-							CONFIG.STORAGE_KEYS.SETTINGS,
-							JSON.stringify(defaultSettings)
-						);
-
-						// 👇 این خط حیاتی بود
-						SettingsManager.apply(defaultSettings);
-					}
-					} catch (e) {
-					console.warn("Failed to load default settings");
-				}
-			}	
+	
 
             // رندر اولیه
             await Renderer.renderDashboard();
-			const settings = StorageManager.get(CONFIG.STORAGE_KEYS.SETTINGS);
-			if (settings) {
-				SettingsManager.apply(settings);
-			}
-
-            const key = "settings_applied_once";
-
-			if (!localStorage.getItem(key)) {
-				const settings = StorageManager.get(CONFIG.STORAGE_KEYS.SETTINGS);
-				if (settings) {
-					SettingsManager.apply(settings);
-					localStorage.setItem(key, "1");
-				}
-			}
-
+			
+            
             // نمایش پیام خوش‌آمدگویی در اولین اجرا
             const firstRun = !StorageManager.get('netcofe_first_run');
             if (firstRun) {
