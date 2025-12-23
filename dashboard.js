@@ -1787,15 +1787,23 @@ class App {
             EventManager.setup();
 		    // تنظیمات	
             if (!localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS)) {
-                try {
-                    const setRes = await fetch(CONFIG.SETTINGS_JSON_URL);
-                    if (setRes.ok) {
-                        const defaultSettings = await setRes.json();
-                        localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(defaultSettings));
-                        console.log('تنظیمات اولیه بارگذاری شد');
-                    }
-                } catch (e) { console.warn('خطا در تنظیمات اولیه'); }
-            }
+			try {
+					const setRes = await fetch(CONFIG.SETTINGS_JSON_URL);
+					if (setRes.ok) {
+						const defaultSettings = await setRes.json();
+						localStorage.setItem(
+							CONFIG.STORAGE_KEYS.SETTINGS,
+							JSON.stringify(defaultSettings)
+						);
+
+						// 👇 این خط حیاتی بود
+						SettingsManager.apply(defaultSettings);
+					}
+					} catch (e) {
+					console.warn("Failed to load default settings");
+				}
+			}	
+
             // رندر اولیه
             await Renderer.renderDashboard();
             
