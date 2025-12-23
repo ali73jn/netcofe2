@@ -61,6 +61,7 @@ self.addEventListener('fetch', event => {
     return;
   }
   
+  
   // برای فایل‌های استاتیک: Cache First
   event.respondWith(
     caches.match(event.request)
