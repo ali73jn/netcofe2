@@ -72,7 +72,9 @@ self.addEventListener('fetch', event => {
         return fetch(event.request)
           .then(response => {
             // فقط اگر پاسخ معتبر است، کش می‌کنیم
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+            const isImage = event.request.destination === 'image';
+            // اجازه کش کردن عکس‌های خارج از دامنه (مثل گیت‌هاب)
+            if (!response || response.status !== 200 || (response.type !== 'basic' && !isImage)) {
               return response;
             }
             

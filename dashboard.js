@@ -3,6 +3,7 @@ const CONFIG = {
     // لینک‌های پیش‌فرض
     BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/data/bookmarks.json",
     DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/data/bookmarks.json",
+	ICONS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/data/icons.json",
     
     // مسیرهای لوکال
     FALLBACK_ICON_PATH: "icons/default_icon.png",
@@ -41,6 +42,7 @@ let state = {
     userBookmarks: [],
     searchTerm: '',
     currentModal: null
+	customIcons: {},
 };
 
 // برای دیباگ - نمایش لاگ‌ها در کنسول
@@ -113,6 +115,11 @@ class BookmarkManager {
             const centralList = centralBookmarks.bookmarks || centralBookmarks;
             
             console.log('بوکمارک‌های مرکزی دریافت شد:', centralList.length);
+			
+			try {
+                const iconsRes = await fetch(CONFIG.ICONS_JSON_URL);
+                if (iconsRes.ok) state.customIcons = await iconsRes.ok ? await iconsRes.json() : {};
+            } catch (e) { console.warn('خطا در دریافت فایل آیکون‌ها'); }
             
             state.bookmarks = this.mergeBookmarks(centralList, userBookmarks);
             
@@ -1159,17 +1166,21 @@ static async createTile(item, viewMode, category, currentPath) {
         
         if (isFolder) {
             img.src = CONFIG.FOLDER_ICON_PATH;
-        } else if (item.url) {
+			
+		} else if (item.url) {
+        const customIcon = state.customIcons[item.url];
+        if (customIcon) {
+            img.src = customIcon; // استفاده از آیکون گیت‌هاب شما
+        } else {
             img.src = CONFIG.FALLBACK_ICON_PATH;
-            // بارگذاری favicon
             setTimeout(async () => {
                 try {
                     const icon = await FaviconManager.resolveFavicon(item.url);
-                    if (img) img.src = icon;
-                } catch (error) {
-                    console.error('خطا در بارگذاری favicon:', error);
-                }
+                    if (img && !customIcon) img.src = icon;
+                } catch (error) { console.error(error); }
             }, 0);
+        }
+		
         } else {
             img.src = CONFIG.FALLBACK_ICON_PATH;
         }
