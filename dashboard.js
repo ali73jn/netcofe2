@@ -41,8 +41,8 @@ let state = {
     bookmarks: [],
     userBookmarks: [],
     searchTerm: '',
-    currentModal: null
-	customIcons: {},
+    currentModal: null,
+	customIcons: {}
 };
 
 // برای دیباگ - نمایش لاگ‌ها در کنسول
@@ -118,8 +118,11 @@ class BookmarkManager {
 			
 			try {
                 const iconsRes = await fetch(CONFIG.ICONS_JSON_URL);
-                if (iconsRes.ok) state.customIcons = await iconsRes.ok ? await iconsRes.json() : {};
-            } catch (e) { console.warn('خطا در دریافت فایل آیکون‌ها'); }
+                state.customIcons = iconsRes.ok ? await iconsRes.json() : {};
+            } catch (e) { 
+                console.warn('خطا در دریافت فایل آیکون‌ها:', e); 
+                state.customIcons = {};
+            }
             
             state.bookmarks = this.mergeBookmarks(centralList, userBookmarks);
             
