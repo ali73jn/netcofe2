@@ -12,7 +12,7 @@ const CONFIG = {
     
     // تنظیمات گرید
     GRID_CELL_SIZE: 20,
-    GRID_GAP: 5,
+    GRID_GAP: 0,
     HORIZONTAL_PIXEL_OFFSET: 0,
     
 	
@@ -1193,6 +1193,9 @@ static async createTile(item, viewMode, category, currentPath) {
         const nameDiv = document.createElement("div");
         nameDiv.className = "tile-name";
         nameDiv.textContent = item.title;
+//		nameDiv.style.marginTop = "-12px"; 
+//        nameDiv.style.height = "35px";
+//        nameDiv.style.fontSize = "11px";
         nameDiv.title = item.description || item.title;
         
         // دکمه ویرایش

@@ -294,9 +294,9 @@ html, body {
 /* -------------------- Breadcrumbs و دکمه‌های کنترل -------------------- */
 /* ==================== Breadcrumb و دکمه‌های کنترل ==================== */
 .card-breadcrumbs {
-    font-size: 1em;
+    font-size: 0.85em !important;
     color: var(--text-color);
-    padding: 4px 15px 6px;
+    padding: 2px 8px 2px !important;
     margin: 0;
     display: flex;
     align-items: center;
@@ -306,7 +306,8 @@ html, body {
     border-bottom: 1px solid var(--border-color);
     overflow-x: auto;
     overflow-y: visible;
-    min-height: 35px;
+    min-height: 20px !important;
+	gap: 4px !important;
 }
 
 [data-theme="dark"] .card-breadcrumbs {
@@ -714,9 +715,25 @@ html, body {
 /* ------------------------------------------------------------------ */
 .view-grid {
     display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
     gap: 8px !important;
+    justify-content: start !important;
+    align-content: start !important;
 }
+
+
+
+.view-grid .tile.tile-grid-mode {
+    min-width: 110px !important;
+    max-width: 250px !important;
+    width: 100% !important;
+    
+}
+
+.card-breadcrumbs {
+    overflow: hidden !important;
+}
+
 
 .tile.tile-grid-mode {
     display: flex !important;
@@ -724,7 +741,7 @@ html, body {
     justify-content: flex-start !important;
     align-items: center !important;
     width: 100px !important;
-    height: 70px !important;
+    height: 72px !important;
     padding: 5px !important;
     background: var(--light-color);
     border-radius: 10px;
@@ -736,6 +753,11 @@ html, body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
     position: relative;
 }
+
+.view-grid .tile.tile-grid-mode {
+    width: auto !important;
+}
+
 
 .tile.tile-grid-mode:hover {
     transform: translateY(-2px);
@@ -1117,4 +1139,36 @@ html, body {
 /* حذف انیمیشن آفلاین */
 .offline-indicator {
     animation: none !important;
+}
+
+
+/* ۱. بزرگ کردن ارتفاع کل لیبل و نزدیک کردن متن به آیکون */
+/* تنظیمات نام بوکمارک - اختصاصی فایل شما */
+/*.tile-label {
+    width: 100% !important;
+    height: 38px !important;   
+    margin-top: -12px !important; 
+    font-size: 11px !important;
+    text-align: center;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px 5px 4px !important;
+    box-sizing: border-box !important;
+    line-height: 1.1 !important;
+    overflow: hidden;
+}*/
+
+/* ۲. حل مشکل وسط‌چین شدن بوکمارک‌ها (دومی بره کنار اولی) */
+/* در فایل JS شما، بوکمارک‌ها داخل کلاسی به نام tile-container قرار می‌گیرند */
+/* تنظیمات ظرف بوکمارک‌ها برای تراز شدن از راست */
+.tile-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important; /* چسباندن به سمت راست (در حالت RTL) */
+    align-content: flex-start !important;
+    gap: 10px !important;
+    padding: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
