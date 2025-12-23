@@ -4,7 +4,7 @@ const CONFIG = {
     BOOKMARKS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/data/bookmarks.json",
     DEFAULT_BOOKMARKS_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/data/bookmarks.json",
 	ICONS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/data/icons.json",
-    
+    SETTINGS_JSON_URL: "https://raw.githubusercontent.com/ali73jn/netcofe2/refs/heads/main/data/settings.json",
     // مسیرهای لوکال
     FALLBACK_ICON_PATH: "icons/default_icon.png",
     FOLDER_ICON_PATH: "icons/folder.png",
@@ -12,7 +12,7 @@ const CONFIG = {
     
     // تنظیمات گرید
     GRID_CELL_SIZE: 20,
-    GRID_GAP: 2,
+    GRID_GAP: 5,
     HORIZONTAL_PIXEL_OFFSET: 0,
     
 	
@@ -1782,7 +1782,17 @@ class App {
             
             // تنظیم رویدادها
             EventManager.setup();
-            
+		    // تنظیمات	
+            if (!localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS)) {
+                try {
+                    const setRes = await fetch(CONFIG.SETTINGS_JSON_URL);
+                    if (setRes.ok) {
+                        const defaultSettings = await setRes.json();
+                        localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(defaultSettings));
+                        console.log('تنظیمات اولیه بارگذاری شد');
+                    }
+                } catch (e) { console.warn('خطا در تنظیمات اولیه'); }
+            }
             // رندر اولیه
             await Renderer.renderDashboard();
             
