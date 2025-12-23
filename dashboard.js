@@ -1806,7 +1806,21 @@ class App {
 
             // رندر اولیه
             await Renderer.renderDashboard();
-            
+			const settings = StorageManager.get(CONFIG.STORAGE_KEYS.SETTINGS);
+			if (settings) {
+				SettingsManager.apply(settings);
+			}
+
+            const key = "settings_applied_once";
+
+			if (!localStorage.getItem(key)) {
+				const settings = StorageManager.get(CONFIG.STORAGE_KEYS.SETTINGS);
+				if (settings) {
+					SettingsManager.apply(settings);
+					localStorage.setItem(key, "1");
+				}
+			}
+
             // نمایش پیام خوش‌آمدگویی در اولین اجرا
             const firstRun = !StorageManager.get('netcofe_first_run');
             if (firstRun) {
