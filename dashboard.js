@@ -1770,87 +1770,73 @@ class App {
         try {
             console.log('راه‌اندازی برنامه...');
             
-            // ۱. بارگذاری‌های اولیه سیستمی
             ThemeManager.init();
             BackgroundManager.applySavedBackground();
             
-            // ۲. بارگذاری داده‌ها از حافظه محلی (Local Storage)
             state.layoutMap = StorageManager.get(CONFIG.STORAGE_KEYS.LAYOUT) || {};
             state.currentPaths = StorageManager.get(CONFIG.STORAGE_KEYS.CURRENT_PATHS) || {};
             
-            // ۳. بارگذاری بوکمارک‌ها از سرور/حافظه
             await BookmarkManager.loadBookmarks();
-            
-            // ۴. تنظیم رویدادهای کلیک و رابط کاربری
             EventManager.setup();
 
-            // ۵. اعمال خودکار تنظیمات از فایل JSON (فقط در اولین اجرا)
+            // --- بخش اعمال تنظیمات خودکار از سرور ---
             const settingsApplied = StorageManager.get('netcofe_settings_applied');
             if (!settingsApplied) {
                 try {
-                    console.log('در حال دریافت تنظیمات اولیه از سرور...');
                     const response = await fetch(CONFIG.SETTINGS_JSON_URL);
                     if (response.ok) {
                         const importedSettings = await response.json();
                         
-                        // اعمال لایه چیدمان
+                        // دقیقاً کارهایی که importSettings انجام می‌دهد را اینجا تکرار می‌کنیم
                         if (importedSettings.layout) {
                             state.layoutMap = importedSettings.layout;
                             StorageManager.set(CONFIG.STORAGE_KEYS.LAYOUT, state.layoutMap);
                         }
-                        // اعمال تم
                         if (importedSettings.theme) {
                             state.isDarkMode = importedSettings.theme === 'dark';
                             ThemeManager.applyTheme();
                         }
-                        // اعمال پس‌زمینه
                         if (importedSettings.background) {
                             BackgroundManager.setBackground(importedSettings.background);
                         }
-                        // اعمال تنظیمات فشرده‌سازی و غیره
+                        if (importedSettings.customUrls) {
+                            StorageManager.set(CONFIG.STORAGE_KEYS.CUSTOM_URLS, importedSettings.customUrls);
+                        }
                         if (importedSettings.settings) {
                             StorageManager.set(CONFIG.STORAGE_KEYS.SETTINGS, importedSettings.settings);
                             state.isCompactMode = importedSettings.settings.compactView || false;
                         }
 
-                        // تایید اعمال تنظیمات
                         StorageManager.set('netcofe_settings_applied', true);
-                        console.log('تنظیمات اولیه با موفقیت ست شد.');
+                        console.log('✅ تنظیمات اولیه با موفقیت از سرور اعمال شد.');
                     }
                 } catch (e) {
-                    console.warn('فایل تنظیمات یافت نشد یا خطا داشت:', e);
+                    console.error('❌ خطا در دریافت فایل تنظیمات:', e);
                 }
             }
+            // ---------------------------------------
 
-            // ۶. رندر نهایی داشبورد
             await Renderer.renderDashboard();
             
-            // ۷. مدیریت اولین اجرا و پیام خوش‌آمدگویی
             const firstRun = !StorageManager.get('netcofe_first_run');
             if (firstRun) {
                 StorageManager.set('netcofe_first_run', true);
                 setTimeout(() => {
-                    alert('🎉 به همیار کافینت خوش آمدید!\n\nبرای ویرایش دکمه ✏️ را فشار دهید.\nبرای جستجو دکمه 🔍 را فشار دهید.\nبوکمارک‌ها از منبع مرکزی بارگیری شده‌اند.');
+                    alert('🎉 به همیار کافینت خوش آمدید!');
                 }, 1000);
             }
             
-            console.log('برنامه با موفقیت راه‌اندازی شد.');
-            
         } catch (error) {
-            console.error('خطا در راه‌اندازی برنامه:', error);
+            console.error('❌ خطا در راه‌اندازی:', error);
             const container = document.getElementById('grid-container');
             if (container) {
-                container.innerHTML = `
-                    <div class="error-state">
-                        <h3>❌ خطا در راه‌اندازی</h3>
-                        <p>${error.message}</p>
-                        <button onclick="location.reload()" class="btn-success">تلاش مجدد</button>
-                    </div>
-                `;
+                container.innerHTML = `<div class="error-state"><h3>❌ خطا در راه‌اندازی</h3><p>${error.message}</p></div>`;
             }
         }
     }
 }
+
+
 // ==================== راه‌اندازی برنامه ====================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM آماده است.');
