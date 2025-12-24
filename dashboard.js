@@ -1767,19 +1767,7 @@ class EventManager {
 // ==================== Initialize Application ====================
 class App {
     static async init() {
-        try {
-			
-			if (!localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS)) {
-                try {
-                    const setRes = await fetch(CONFIG.SETTINGS_JSON_URL);
-                    if (setRes.ok) {
-                        const defaultSettings = await setRes.json();
-                        localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(defaultSettings));
-                        console.log('تنظیمات اولیه بارگذاری شد');
-                    }
-                } catch (e) { console.warn('خطا در تنظیمات اولیه'); }
-            }
-			
+        try {			
 			
             console.log('راه‌اندازی برنامه...');
             
@@ -1796,6 +1784,54 @@ class App {
             // بارگذاری بوکمارک‌ها
             await BookmarkManager.loadBookmarks();
             
+			
+			// ... بعد از بارگذاری بوکمارک‌ها ...
+
+// چک کردن اولین اجرا برای اعمال تنظیمات خودکار
+const settingsApplied = StorageManager.get('settings_auto_applied');
+
+if (!settingsApplied) {
+    try {
+        console.log('در حال اعمال خودکار تنظیمات اولیه...');
+        const response = await fetch(CONFIG.SETTINGS_JSON_URL);
+        
+        if (response.ok) {
+            const importedSettings = await response.json();
+            
+            // دقیقاً همان کارهایی که دکمه "ورود تنظیمات" انجام می‌دهد:
+            if (importedSettings.layout) {
+                state.layoutMap = importedSettings.layout;
+                StorageManager.set(CONFIG.STORAGE_KEYS.LAYOUT, state.layoutMap);
+            }
+            if (importedSettings.theme) {
+                state.isDarkMode = importedSettings.theme === 'dark';
+                ThemeManager.applyTheme();
+            }
+            if (importedSettings.background) {
+                BackgroundManager.setBackground(importedSettings.background);
+            }
+            if (importedSettings.settings) {
+                StorageManager.set(CONFIG.STORAGE_KEYS.SETTINGS, importedSettings.settings);
+                state.isCompactMode = importedSettings.settings.compactView || false;
+            }
+
+            // علامت‌گذاری که تنظیمات یک‌بار اعمال شد
+            StorageManager.set('settings_auto_applied', true);
+            
+            // رندر مجدد برای اعمال ظاهر جدید
+            await Renderer.renderDashboard();
+            console.log('تنظیمات اولیه با موفقیت اعمال شد.');
+        }
+    } catch (e) {
+        console.warn('خطا در اعمال خودکار تنظیمات:', e);
+    }
+}
+			
+			
+			
+			
+			
+			
             // تنظیم رویدادها
             EventManager.setup();
 		    // تنظیمات	
