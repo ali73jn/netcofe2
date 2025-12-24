@@ -1765,93 +1765,69 @@ class EventManager {
 }
 
 // ==================== Initialize Application ====================
+// ==================== Initialize Application ====================
 class App {
     static async init() {
-        try {			
-			
+        try {
             console.log('راه‌اندازی برنامه...');
-            
-            // بارگذاری اولیه
+
+            // 1️⃣ مواردی که به DOM وابسته نیستند
             ThemeManager.init();
             BackgroundManager.applySavedBackground();
-            
-            // بارگذاری layout
+
             state.layoutMap = StorageManager.get(CONFIG.STORAGE_KEYS.LAYOUT) || {};
-            
-            // بارگذاری currentPaths
             state.currentPaths = StorageManager.get(CONFIG.STORAGE_KEYS.CURRENT_PATHS) || {};
-            
-            // بارگذاری بوکمارک‌ها
+
+            // 2️⃣ بارگذاری داده‌ها
             await BookmarkManager.loadBookmarks();
-            
-			
-			// ... بعد از بارگذاری بوکمارک‌ها ...
 
-// چک کردن اولین اجرا برای اعمال تنظیمات خودکار
-const settingsApplied = StorageManager.get('settings_auto_applied');
-
-if (!settingsApplied) {
-    try {
-        console.log('در حال اعمال خودکار تنظیمات اولیه...');
-        const response = await fetch(CONFIG.SETTINGS_JSON_URL);
-        
-        if (response.ok) {
-            const importedSettings = await response.json();
-            
-            // دقیقاً همان کارهایی که دکمه "ورود تنظیمات" انجام می‌دهد:
-            if (importedSettings.layout) {
-                state.layoutMap = importedSettings.layout;
-                StorageManager.set(CONFIG.STORAGE_KEYS.LAYOUT, state.layoutMap);
-            }
-            if (importedSettings.theme) {
-                state.isDarkMode = importedSettings.theme === 'dark';
-                ThemeManager.applyTheme();
-            }
-            if (importedSettings.background) {
-                BackgroundManager.setBackground(importedSettings.background);
-            }
-            if (importedSettings.settings) {
-                StorageManager.set(CONFIG.STORAGE_KEYS.SETTINGS, importedSettings.settings);
-                state.isCompactMode = importedSettings.settings.compactView || false;
-            }
-
-            // علامت‌گذاری که تنظیمات یک‌بار اعمال شد
-            StorageManager.set('settings_auto_applied', true);
-            
-            // رندر مجدد برای اعمال ظاهر جدید
-            await Renderer.renderDashboard();
-            console.log('تنظیمات اولیه با موفقیت اعمال شد.');
-        }
-    } catch (e) {
-        console.warn('خطا در اعمال خودکار تنظیمات:', e);
-    }
-}
-			
-			
-			
-			
-			
-			
-            // تنظیم رویدادها
+            // 3️⃣ رویدادها
             EventManager.setup();
-		    // تنظیمات	
-	
 
-            // رندر اولیه
+            // 4️⃣ رندر UI (خیلی مهم: قبل از apply تنظیمات)
             await Renderer.renderDashboard();
-			
-            
-            // نمایش پیام خوش‌آمدگویی در اولین اجرا
-            const firstRun = !StorageManager.get('netcofe_first_run');
+
+            // 5️⃣ بارگذاری یا ساخت تنظیمات
+            let settings = StorageManager.get(CONFIG.STORAGE_KEYS.SETTINGS);
+
+            if (!settings) {
+                try {
+                    const setRes = await fetch(CONFIG.SETTINGS_JSON_URL);
+                    if (setRes.ok) {
+                        settings = await setRes.json();
+                        StorageManager.set(
+                            CONFIG.STORAGE_KEYS.SETTINGS,
+                            settings
+                        );
+                    }
+                } catch (e) {
+                    console.warn("Failed to load default settings");
+                }
+            }
+
+            // 6️⃣ اعمال تنظیمات (الان DOM آماده است ✅)
+            if (settings) {
+                SettingsManager.apply(settings);
+            }
+
+            // 7️⃣ پیام اولین اجرا
+            const firstRunKey = 'netcofe_first_run';
+            const firstRun = !StorageManager.get(firstRunKey);
+
             if (firstRun) {
-                StorageManager.set('netcofe_first_run', true);
+                StorageManager.set(firstRunKey, true);
                 setTimeout(() => {
-                    alert('🎉 به همیار کافینت خوش آمدید!\n\nبرای ویرایش دکمه ✏️ را فشار دهید.\nبرای جستجو دکمه 🔍 را فشار دهید.\nبوکمارک‌ها از منبع مرکزی بارگیری شده‌اند و می‌توانید آنها را شخصی‌سازی کنید.');
+                    alert(
+                        '🎉 به همیار کافینت خوش آمدید!\n\n' +
+                        'برای ویرایش دکمه ✏️ را فشار دهید.\n' +
+                        'برای جستجو دکمه 🔍 را فشار دهید.\n' +
+                        'بوکمارک‌ها از منبع مرکزی بارگیری شده‌اند و می‌توانید آنها را شخصی‌سازی کنید.'
+                    );
                 }, 1000);
             }
-            
+
             console.log('برنامه با موفقیت راه‌اندازی شد.');
-            
+
         } catch (error) {
             console.error('خطا در راه‌اندازی برنامه:', error);
             const container = document.getElementById('grid-container');
@@ -1860,13 +1836,16 @@ if (!settingsApplied) {
                     <div class="error-state">
                         <h3>❌ خطا در راه‌اندازی</h3>
                         <p>${error.message}</p>
-                        <button onclick="location.reload()" class="btn-success">تلاش مجدد</button>
+                        <button onclick="location.reload()" class="btn-success">
+                            تلاش مجدد
+                        </button>
                     </div>
                 `;
             }
         }
     }
 }
+
 
 // ==================== راه‌اندازی برنامه ====================
 document.addEventListener('DOMContentLoaded', () => {
